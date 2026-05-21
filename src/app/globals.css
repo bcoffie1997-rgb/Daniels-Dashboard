@@ -95,12 +95,10 @@
     font-feature-settings: "rlig" 1, "calt" 1, "ss01" 1;
   }
 
-  /* Tabular numbers utility for count tables */
   .tabular {
     font-variant-numeric: tabular-nums;
   }
 
-  /* Daniel's caption style — uppercase tracked labels */
   .caption {
     text-transform: uppercase;
     letter-spacing: 0.06em;
