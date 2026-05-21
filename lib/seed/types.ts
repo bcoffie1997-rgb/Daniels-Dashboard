@@ -33,6 +33,10 @@ export type InventoryItem = {
   par?: number;
   category?: string;
   notes?: string;
+  // v2 scaffolding
+  lastCounted?: number;
+  unitCost?: number;
+  requiresDualCount?: boolean;
 };
 
 export type Station = {

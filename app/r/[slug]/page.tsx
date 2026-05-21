@@ -72,41 +72,45 @@ export default function RestaurantDashboard({ params }: { params: { slug: string
           />
         </section>
 
-        <section className="grid lg:grid-cols-3 gap-5 mb-10">
-          <Link
+        <section className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-10">
+          <NavCard
             href={`/r/${restaurant.slug}/inventory`}
-            className="group rounded-lg border border-border bg-card p-6 hover:border-accent/60 transition-colors"
-          >
-            <div className="flex items-center justify-between">
-              <div className="micro text-muted-foreground">Inventory</div>
-              <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-accent transition-colors" />
-            </div>
-            <div className="font-display text-display-md mt-2">By station</div>
-            <p className="text-sm text-muted-foreground mt-1.5">
-              {kpi.itemsTracked} items across {kpi.stationsActive} stations.
-              Par levels seeded from menu analysis.
-            </p>
-          </Link>
-
-          <Link
+            caption="Inventory"
+            title="By station"
+            sub={`${kpi.itemsTracked} items · ${kpi.stationsActive} stations`}
+          />
+          <NavCard
+            href={`/r/${restaurant.slug}/reorder`}
+            caption="Reorder"
+            title="Below par"
+            sub="Items short of par with critical / watch tiers"
+          />
+          <NavCard
+            href={`/r/${restaurant.slug}/recipes`}
+            caption="Recipes"
+            title="Menu → BOM"
+            sub="Theoretical usage source for AvT"
+          />
+          <NavCard
+            href={`/r/${restaurant.slug}/avt`}
+            caption="AvT"
+            title="Actual vs Theoretical"
+            sub="v2 preview · awaiting Toast sales feed"
+            muted
+          />
+          <NavCard
             href={`/r/${restaurant.slug}/menu`}
-            className="group rounded-lg border border-border bg-card p-6 hover:border-accent/60 transition-colors"
-          >
-            <div className="flex items-center justify-between">
-              <div className="micro text-muted-foreground">Menu</div>
-              <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-accent transition-colors" />
-            </div>
-            <div className="font-display text-display-md mt-2">{totalMenuItems} dishes</div>
-            <p className="text-sm text-muted-foreground mt-1.5">
-              Full menu breakdown by section — the source of the inventory.
-            </p>
-          </Link>
-
-          <div className="rounded-lg border border-border bg-card p-6">
-            <div className="micro text-muted-foreground">Last count</div>
-            <div className="font-display text-display-md mt-2 tabular">{kpi.lastCountAt}</div>
-            <p className="text-sm text-muted-foreground mt-1.5">{kpi.lastCountBy}</p>
-          </div>
+            caption="Menu"
+            title={`${totalMenuItems} dishes`}
+            sub="Full published menu by section"
+          />
+          <NavCard
+            href={`/r/${restaurant.slug}/integrations`}
+            caption="Integrations"
+            title="Connect"
+            sub="Toast POS · invoice OCR · alerts"
+            muted
+          />
         </section>
 
         {kpi.topVariance && (
@@ -133,6 +137,21 @@ export default function RestaurantDashboard({ params }: { params: { slug: string
           </section>
         )}
 
+        <section className="mb-10">
+          <div className="rounded-lg border border-border bg-card px-5 py-4 flex items-center justify-between flex-wrap gap-2">
+            <div>
+              <div className="micro text-muted-foreground">Last approved count</div>
+              <div className="text-sm mt-1">
+                <span className="tabular">{kpi.lastCountAt}</span>
+                <span className="text-muted-foreground"> · {kpi.lastCountBy}</span>
+              </div>
+            </div>
+            <div className="text-xs text-muted-foreground">
+              {kpi.sessionsThisWeek} sessions this week
+            </div>
+          </div>
+        </section>
+
         <section>
           <h2 className="font-display text-display-md mb-4">Stations</h2>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -153,5 +172,25 @@ export default function RestaurantDashboard({ params }: { params: { slug: string
         </section>
       </main>
     </div>
+  );
+}
+
+function NavCard({
+  href, caption, title, sub, muted,
+}: { href: string; caption: string; title: string; sub: string; muted?: boolean }) {
+  return (
+    <Link
+      href={href}
+      className={`group rounded-lg border bg-card p-5 transition-colors ${
+        muted ? "border-border hover:border-accent/40" : "border-border hover:border-accent/60"
+      }`}
+    >
+      <div className="flex items-center justify-between">
+        <div className={`micro ${muted ? "text-accent" : "text-muted-foreground"}`}>{caption}</div>
+        <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-accent transition-colors" />
+      </div>
+      <div className="font-display text-display-md mt-2">{title}</div>
+      <p className="text-sm text-muted-foreground mt-1.5 leading-snug">{sub}</p>
+    </Link>
   );
 }
