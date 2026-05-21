@@ -5,22 +5,17 @@ import type { Restaurant } from "@/lib/restaurants";
 import { Bell, Search } from "lucide-react";
 
 export function SiteHeader({ current }: { current?: Restaurant }) {
-  const base = current ? `/r/${current.slug}` : "";
-  const links = current
-    ? [
-        { href: `${base}`, label: "Dashboard" },
-        { href: `${base}/inventory`, label: "Inventory" },
-        { href: `${base}/menu`, label: "Menu" },
-      ]
-    : [
-        { href: "/", label: "Overview" },
-        { href: "/activity", label: "Activity" },
-      ];
+  const base = current ? `/r/${current.slug}` : "/r/fort-lauderdale";
+  const links = [
+    { href: `${base}`, label: "Dashboard" },
+    { href: `${base}/inventory`, label: "Inventory" },
+    { href: `${base}/menu`, label: "Menu" },
+  ];
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background/85 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-[1400px] items-center gap-6 px-4 md:px-8">
-        <Link href="/" className="text-foreground hover:text-accent transition-colors">
+        <Link href={base} className="text-foreground hover:text-accent transition-colors">
           <GioiaMark />
         </Link>
         <div className="hidden md:block h-8 w-px bg-border" />

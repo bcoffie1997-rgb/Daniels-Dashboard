@@ -18,8 +18,6 @@ export default function InventoryPage({ params }: { params: { slug: string } }) 
       <div className="h-1 w-full" style={{ backgroundColor: restaurant.accentHex }} />
       <main className="mx-auto max-w-[1400px] px-4 md:px-8 py-8 md:py-10">
         <nav className="text-sm text-muted-foreground flex items-center gap-2 mb-4">
-          <Link href="/" className="hover:text-accent">Gioia</Link>
-          <ChevronRight className="h-3.5 w-3.5" />
           <Link href={`/r/${restaurant.slug}`} className="hover:text-accent">{restaurant.shortName}</Link>
           <ChevronRight className="h-3.5 w-3.5" />
           <span className="text-foreground">Inventory</span>

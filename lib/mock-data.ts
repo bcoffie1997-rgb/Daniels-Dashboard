@@ -1,4 +1,4 @@
-import { RESTAURANTS, type RestaurantSlug } from "./restaurants";
+import { type RestaurantSlug } from "./restaurants";
 import { SEEDS, totalItems } from "./seed";
 
 export type LocationKpi = {
@@ -65,29 +65,6 @@ const SEED: Record<RestaurantSlug, LocationKpi> = {
   },
 };
 
-export function getKpis(): LocationKpi[] {
-  return RESTAURANTS.map((r) => SEED[r.slug]);
-}
-
 export function getKpiFor(slug: RestaurantSlug): LocationKpi {
   return SEED[slug];
 }
-
-export type RecentActivity = {
-  ts: string;
-  location: RestaurantSlug;
-  user: string;
-  action: string;
-  detail: string;
-  status?: "approved" | "pending" | "rejected" | "info";
-};
-
-export const RECENT_ACTIVITY: RecentActivity[] = [
-  { ts: "06:02", location: "fort-lauderdale", user: "Branden M.", action: "Approved count", detail: "Walk-in Cooler — Proteins · 16 items", status: "approved" },
-  { ts: "02:48", location: "ds-sports", user: "Marisol G.", action: "Submitted count", detail: "Bar — Liquor · 9 items · 1 variance > 10%", status: "pending" },
-  { ts: "02:31", location: "ds-sports", user: "Jordan T.", action: "Submitted count", detail: "Walk-in Cooler — Burgers · 17 items", status: "pending" },
-  { ts: "22:14", location: "miami", user: "Andres R.", action: "Submitted count", detail: "Walk-in Cooler — Seafood · 14 items · 2 variances", status: "pending" },
-  { ts: "21:50", location: "miami", user: "Kassidy A.", action: "Rejected count", detail: "Dry Storage · pasta units mismatch", status: "rejected" },
-  { ts: "20:42", location: "fort-lauderdale", user: "Sarah K.", action: "Submitted count", detail: "Bar — Wine & Beer · 6 items", status: "approved" },
-  { ts: "19:28", location: "ds-sports", user: "Marisol G.", action: "Started session", detail: "Bar — Beer & Seltzer", status: "info" },
-];
