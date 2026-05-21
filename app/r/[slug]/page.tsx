@@ -50,6 +50,29 @@ export default function RestaurantDashboard({ params }: { params: { slug: string
           </div>
         </div>
 
+        {/* Primary CTA — what counters arrive to do */}
+        <section className="mb-8">
+          <div className="rounded-lg border border-accent/40 bg-gradient-to-r from-accent/10 to-accent/5 p-5 md:p-6 flex items-center justify-between flex-wrap gap-4">
+            <div className="flex items-center gap-4">
+              <div className="h-12 w-12 rounded-full bg-accent flex items-center justify-center shrink-0">
+                <ClipboardList className="h-6 w-6 text-accent-foreground" />
+              </div>
+              <div>
+                <div className="font-display text-display-md leading-tight">Start a count</div>
+                <div className="text-sm text-muted-foreground mt-0.5">
+                  Pick a station — items are sorted in physical walk order.
+                </div>
+              </div>
+            </div>
+            <Link
+              href={`/r/${restaurant.slug}/inventory`}
+              className="inline-flex items-center gap-2 rounded-md bg-accent text-accent-foreground px-4 py-2.5 text-sm font-medium hover:bg-accent/90 transition-colors"
+            >
+              Choose station <ChevronRight className="h-4 w-4" />
+            </Link>
+          </div>
+        </section>
+
         <section className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
           <KpiStat label="Items tracked" value={kpi.itemsTracked} delta={`${kpi.stationsActive} stations`} icon={Boxes} />
           <KpiStat
@@ -148,6 +171,38 @@ export default function RestaurantDashboard({ params }: { params: { slug: string
             </div>
             <div className="text-xs text-muted-foreground">
               {kpi.sessionsThisWeek} sessions this week
+            </div>
+          </div>
+        </section>
+
+        <section className="mb-10">
+          <div className="flex items-end justify-between mb-3">
+            <h2 className="font-display text-display-md">Admin</h2>
+            <span className="micro text-muted-foreground">visible to admins only</span>
+          </div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            <Link
+              href={`/r/${restaurant.slug}/changelog`}
+              className="group rounded-lg border border-border bg-card p-4 hover:border-accent/60 transition-colors"
+            >
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <div className="micro text-accent">Audit log</div>
+                  <div className="text-sm font-medium mt-1.5">Changelog</div>
+                  <div className="text-xs text-muted-foreground mt-0.5">Every state change, in order</div>
+                </div>
+                <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-accent transition-colors shrink-0" />
+              </div>
+            </Link>
+            <div className="rounded-lg border border-border bg-card p-4 opacity-60">
+              <div className="micro text-muted-foreground">Users &amp; roles</div>
+              <div className="text-sm font-medium mt-1.5">Manage access</div>
+              <div className="text-xs text-muted-foreground mt-0.5">Counter · manager · admin — v2</div>
+            </div>
+            <div className="rounded-lg border border-border bg-card p-4 opacity-60">
+              <div className="micro text-muted-foreground">Export</div>
+              <div className="text-sm font-medium mt-1.5">Sessions to CSV</div>
+              <div className="text-xs text-muted-foreground mt-0.5">For existing back-office workflows</div>
             </div>
           </div>
         </section>
