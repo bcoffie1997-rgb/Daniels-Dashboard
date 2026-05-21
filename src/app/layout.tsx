@@ -66,7 +66,7 @@ export default function RootLayout({
     >
       <body className="bg-background text-foreground font-sans antialiased min-h-screen">
         <Providers>{children}</Providers>
-        <Toaster />
+        <Toaster richColors closeButton position="top-center" />
       </body>
     </html>
   );
