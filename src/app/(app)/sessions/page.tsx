@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import Link from "next/link";
 import { useMockStore, selectCurrentUser } from "@/lib/mock/store";
 import { StatusBadge } from "@/components/count/status-badge";
@@ -8,23 +9,29 @@ import { relativeFromNow } from "@/lib/format";
 
 export default function MySessionsPage() {
   const user = useMockStore(selectCurrentUser);
-  const sessions = useMockStore((s) =>
-    s.sessions
-      .filter((sess) => sess.user_id === user?.id)
-      .sort(
-        (a, b) =>
-          new Date(b.submitted_at ?? b.started_at).getTime() -
-          new Date(a.submitted_at ?? a.started_at).getTime(),
-      ),
-  );
+  const allSessions = useMockStore((s) => s.sessions);
   const stations = useMockStore((s) => s.stations);
-  const entriesByCount = useMockStore((s) => {
+  const entries = useMockStore((s) => s.entries);
+
+  const sessions = useMemo(
+    () =>
+      allSessions
+        .filter((sess) => sess.user_id === user?.id)
+        .sort(
+          (a, b) =>
+            new Date(b.submitted_at ?? b.started_at).getTime() -
+            new Date(a.submitted_at ?? a.started_at).getTime(),
+        ),
+    [allSessions, user?.id],
+  );
+
+  const entriesByCount = useMemo(() => {
     const map = new Map<string, number>();
-    s.entries.forEach((e) => {
+    entries.forEach((e) => {
       map.set(e.session_id, (map.get(e.session_id) ?? 0) + 1);
     });
     return map;
-  });
+  }, [entries]);
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-6 lg:px-8 lg:py-10">

@@ -6,7 +6,7 @@ import Link from "next/link";
 import { toast } from "sonner";
 import {
   useMockStore,
-  selectEntriesForSession,
+  computeEntriesForSession,
 } from "@/lib/mock/store";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -39,7 +39,11 @@ export default function ManagerSessionDetailPage() {
     session ? s.users.find((u) => u.id === session.user_id) : null,
   );
   const items = useMockStore((s) => s.items);
-  const entries = useMockStore(selectEntriesForSession(sessionId ?? "__none__"));
+  const allEntries = useMockStore((s) => s.entries);
+  const entries = useMemo(
+    () => computeEntriesForSession(allEntries, sessionId ?? "__none__"),
+    [allEntries, sessionId],
+  );
   const approveSession = useMockStore((s) => s.approveSession);
   const rejectSession = useMockStore((s) => s.rejectSession);
   const setManagerNotes = useMockStore((s) => s.setManagerNotes);

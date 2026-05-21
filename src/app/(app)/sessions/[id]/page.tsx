@@ -1,10 +1,11 @@
 "use client";
 
+import { useMemo } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import {
   useMockStore,
-  selectEntriesForSession,
+  computeEntriesForSession,
 } from "@/lib/mock/store";
 import { Card } from "@/components/ui/card";
 import { StatusBadge } from "@/components/count/status-badge";
@@ -13,7 +14,9 @@ import { formatQuantity, relativeFromNow } from "@/lib/format";
 
 export default function SessionDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const session = useMockStore((s) => s.sessions.find((sess) => sess.id === id));
+  const session = useMockStore((s) =>
+    s.sessions.find((sess) => sess.id === id),
+  );
   const station = useMockStore((s) =>
     session ? s.stations.find((st) => st.id === session.station_id) : null,
   );
@@ -21,7 +24,11 @@ export default function SessionDetailPage() {
     session ? s.users.find((u) => u.id === session.user_id) : null,
   );
   const items = useMockStore((s) => s.items);
-  const entries = useMockStore(selectEntriesForSession(id ?? "__none__"));
+  const allEntries = useMockStore((s) => s.entries);
+  const entries = useMemo(
+    () => computeEntriesForSession(allEntries, id ?? "__none__"),
+    [allEntries, id],
+  );
 
   if (!session || !station) {
     return (

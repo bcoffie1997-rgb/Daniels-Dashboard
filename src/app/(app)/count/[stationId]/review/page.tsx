@@ -5,8 +5,8 @@ import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
   useMockStore,
-  selectEntriesForSession,
   selectCurrentUser,
+  computeEntriesForSession,
 } from "@/lib/mock/store";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -31,7 +31,11 @@ export default function ReviewPage() {
     ),
   );
   const sessionId = activeSession?.id ?? "__none__";
-  const entries = useMockStore(selectEntriesForSession(sessionId));
+  const allEntries = useMockStore((s) => s.entries);
+  const entries = useMemo(
+    () => computeEntriesForSession(allEntries, sessionId),
+    [allEntries, sessionId],
+  );
   const items = useMockStore((s) => s.items);
   const setSessionNotes = useMockStore((s) => s.setSessionNotes);
   const setEntryReason = useMockStore((s) => s.setEntryReason);
@@ -41,10 +45,10 @@ export default function ReviewPage() {
 
   const flagged = useMemo(
     () =>
-      entries.filter(
-        (e) => classifyVariance(e.variance_pct) === "warn" ||
-          classifyVariance(e.variance_pct) === "danger",
-      ),
+      entries.filter((e) => {
+        const c = classifyVariance(e.variance_pct);
+        return c === "warn" || c === "danger";
+      }),
     [entries],
   );
 
@@ -59,7 +63,7 @@ export default function ReviewPage() {
   }
 
   const counted = entries.length;
-  const skipped = 0; // skipped state is local to count screen; demo doesn't persist it
+  const skipped = 0;
   const duration = formatDuration(
     activeSession.started_at,
     new Date().toISOString(),

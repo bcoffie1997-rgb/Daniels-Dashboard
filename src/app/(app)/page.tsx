@@ -1,15 +1,22 @@
 "use client";
 
+import { useMemo } from "react";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
-import { useMockStore, selectLastCounted } from "@/lib/mock/store";
+import {
+  useMockStore,
+  computeLastCounted,
+} from "@/lib/mock/store";
 import { relativeFromNow } from "@/lib/format";
 
 export default function StationPickerPage() {
-  const stations = useMockStore((s) =>
-    s.stations
-      .filter((st) => st.active)
-      .sort((a, b) => a.sort_order - b.sort_order),
+  const stationList = useMockStore((s) => s.stations);
+  const stations = useMemo(
+    () =>
+      stationList
+        .filter((st) => st.active)
+        .sort((a, b) => a.sort_order - b.sort_order),
+    [stationList],
   );
 
   return (
@@ -37,7 +44,12 @@ function StationRow({ stationId }: { stationId: string }) {
   const station = useMockStore((s) =>
     s.stations.find((st) => st.id === stationId),
   );
-  const last = useMockStore(selectLastCounted(stationId));
+  const sessions = useMockStore((s) => s.sessions);
+  const users = useMockStore((s) => s.users);
+  const last = useMemo(
+    () => computeLastCounted(sessions, users, stationId),
+    [sessions, users, stationId],
+  );
 
   if (!station) return null;
 

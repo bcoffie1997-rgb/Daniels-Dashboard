@@ -18,8 +18,8 @@ import type {
   User,
 } from "./types";
 
-// All state is in-memory. Refreshing resets to seed — this is intentional for
-// the demo shell.
+// All state is in-memory. Refreshing resets to seed — intentional for the
+// demo shell.
 
 interface MockState {
   currentUserId: string;
@@ -32,14 +32,12 @@ interface MockState {
   setCurrentUserByRole: (role: Role) => void;
   signOut: () => void;
 
-  // Counter actions
   startOrResumeSession: (stationId: string) => CountSession;
   saveEntry: (sessionId: string, itemId: string, quantity: number) => void;
   setEntryReason: (sessionId: string, itemId: string, reason: string) => void;
   setSessionNotes: (sessionId: string, notes: string) => void;
   submitSession: (sessionId: string) => void;
 
-  // Manager actions
   approveSession: (sessionId: string, managerNotes?: string) => void;
   rejectSession: (sessionId: string, reason: string) => void;
   setManagerNotes: (sessionId: string, notes: string) => void;
@@ -57,8 +55,6 @@ const computeVariance = (
 };
 
 export const useMockStore = create<MockState>((set, get) => ({
-  // Default to admin so the demo opens fully open — switch via /settings or
-  // the role chip in the header. Real auth comes in Sprint 1.
   currentUserId: "u-admin",
   users: seedUsers,
   stations: seedStations,
@@ -71,9 +67,7 @@ export const useMockStore = create<MockState>((set, get) => ({
     if (user) set({ currentUserId: user.id });
   },
 
-  signOut: () => {
-    set({ currentUserId: "" });
-  },
+  signOut: () => set({ currentUserId: "" }),
 
   startOrResumeSession: (stationId) => {
     const { sessions, currentUserId } = get();
@@ -107,8 +101,6 @@ export const useMockStore = create<MockState>((set, get) => ({
     const item = items.find((i) => i.id === itemId);
     if (!item) return;
 
-    // Previous = the same item's quantity from the most recent submitted or
-    // approved session on this station, not counting the active session.
     const station_id = sessions.find((s) => s.id === sessionId)?.station_id;
     const prior = sessions
       .filter(
@@ -239,23 +231,32 @@ export const useMockStore = create<MockState>((set, get) => ({
   },
 }));
 
-// Convenience selectors used across the app.
+// ----- Stable-reference selectors safe to pass to useMockStore directly -----
+// These return primitives or stable refs from state (Array.prototype.find
+// returns the same object reference across renders as long as the array is
+// unchanged), so the default Object.is equality check inside Zustand keeps
+// the subscription stable.
 export const selectCurrentUser = (s: MockState): User | null =>
   s.users.find((u) => u.id === s.currentUserId) ?? null;
 
-export const selectStationById = (id: string) => (s: MockState) =>
-  s.stations.find((st) => st.id === id) ?? null;
-
-export const selectItemsByStation = (stationId: string) => (s: MockState) =>
-  s.items
+// ----- Pure helpers (NOT Zustand selectors) for derived data -----
+// Use these inside `useMemo` in callers, with primitive store slices as deps.
+export const computeItemsByStation = (items: Item[], stationId: string) =>
+  items
     .filter((i) => i.station_id === stationId && i.active)
     .sort((a, b) => a.sort_order - b.sort_order);
 
-export const selectEntriesForSession = (sessionId: string) => (s: MockState) =>
-  s.entries.filter((e) => e.session_id === sessionId);
+export const computeEntriesForSession = (
+  entries: CountEntry[],
+  sessionId: string,
+) => entries.filter((e) => e.session_id === sessionId);
 
-export const selectLastCounted = (stationId: string) => (s: MockState) => {
-  const sess = s.sessions
+export const computeLastCounted = (
+  sessions: CountSession[],
+  users: User[],
+  stationId: string,
+) => {
+  const sess = sessions
     .filter(
       (x) =>
         x.station_id === stationId &&
@@ -267,6 +268,11 @@ export const selectLastCounted = (stationId: string) => (s: MockState) => {
         new Date(a.submitted_at ?? a.started_at).getTime(),
     )[0];
   if (!sess) return null;
-  const user = s.users.find((u) => u.id === sess.user_id);
-  return { session: sess, user };
+  const user = users.find((u) => u.id === sess.user_id);
+  return { session: sess, user: user ?? null };
 };
+
+export const sortByStringField = <T>(arr: T[], key: keyof T): T[] =>
+  [...arr].sort((a, b) =>
+    String(a[key]).localeCompare(String(b[key])),
+  );

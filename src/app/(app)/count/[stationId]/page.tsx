@@ -6,8 +6,8 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import {
   useMockStore,
-  selectItemsByStation,
-  selectEntriesForSession,
+  computeItemsByStation,
+  computeEntriesForSession,
 } from "@/lib/mock/store";
 import { formatQuantity } from "@/lib/format";
 import { NumericInputDrawer } from "@/components/count/numeric-input-drawer";
@@ -20,7 +20,12 @@ export default function CountPage() {
   const station = useMockStore((s) =>
     s.stations.find((st) => st.id === stationId),
   );
-  const items = useMockStore(selectItemsByStation(stationId));
+  const allItems = useMockStore((s) => s.items);
+  const items = useMemo(
+    () => computeItemsByStation(allItems, stationId),
+    [allItems, stationId],
+  );
+
   const startOrResume = useMockStore((s) => s.startOrResumeSession);
   const saveEntry = useMockStore((s) => s.saveEntry);
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -35,8 +40,10 @@ export default function CountPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stationId]);
 
-  const entries = useMockStore(
-    selectEntriesForSession(sessionId ?? "__none__"),
+  const allEntries = useMockStore((s) => s.entries);
+  const entries = useMemo(
+    () => computeEntriesForSession(allEntries, sessionId ?? "__none__"),
+    [allEntries, sessionId],
   );
   const counted = useMemo(
     () => new Set(entries.map((e) => e.item_id)),
@@ -108,7 +115,6 @@ export default function CountPage() {
 
   return (
     <div className="flex min-h-[calc(100vh-3.5rem)] flex-col">
-      {/* Sticky station header */}
       <div className="sticky top-14 z-20 border-b border-border bg-background/95 px-4 py-3 backdrop-blur lg:top-0 lg:px-8">
         <div className="mx-auto flex max-w-2xl items-center justify-between gap-3">
           <div>
@@ -166,14 +172,10 @@ export default function CountPage() {
         })}
       </ul>
 
-      {/* Sticky bottom actions */}
       <div className="sticky bottom-0 z-20 border-t border-border bg-card/95 px-4 py-3 pb-[calc(env(safe-area-inset-bottom)+12px)] backdrop-blur lg:px-8">
         <div className="mx-auto flex max-w-2xl gap-3">
           <Link href="/" className="flex-1">
-            <Button
-              variant="outline"
-              className="h-12 w-full border-border"
-            >
+            <Button variant="outline" className="h-12 w-full border-border">
               Save & continue later
             </Button>
           </Link>
@@ -201,9 +203,7 @@ export default function CountPage() {
             : null
         }
         currentQuantity={
-          drawerItem
-            ? (currentEntryFor(drawerItem.id)?.quantity ?? null)
-            : null
+          drawerItem ? (currentEntryFor(drawerItem.id)?.quantity ?? null) : null
         }
         onSave={handleSave}
         onSaveAndNext={handleSaveAndNext}

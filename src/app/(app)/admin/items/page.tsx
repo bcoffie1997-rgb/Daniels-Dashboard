@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useMockStore } from "@/lib/mock/store";
 import { Card } from "@/components/ui/card";
 import {
@@ -12,15 +12,21 @@ import {
 } from "@/components/ui/select";
 
 export default function AdminItemsPage() {
-  const stations = useMockStore((s) =>
-    [...s.stations].sort((a, b) => a.sort_order - b.sort_order),
-  );
+  const stationList = useMockStore((s) => s.stations);
   const items = useMockStore((s) => s.items);
+  const stations = useMemo(
+    () => [...stationList].sort((a, b) => a.sort_order - b.sort_order),
+    [stationList],
+  );
   const [stationId, setStationId] = useState(stations[0]?.id ?? "");
 
-  const filtered = items
-    .filter((i) => i.station_id === stationId)
-    .sort((a, b) => a.sort_order - b.sort_order);
+  const filtered = useMemo(
+    () =>
+      items
+        .filter((i) => i.station_id === stationId)
+        .sort((a, b) => a.sort_order - b.sort_order),
+    [items, stationId],
+  );
 
   return (
     <>

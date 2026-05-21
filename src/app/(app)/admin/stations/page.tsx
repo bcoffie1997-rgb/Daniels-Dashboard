@@ -1,19 +1,22 @@
 "use client";
 
+import { useMemo } from "react";
 import { useMockStore } from "@/lib/mock/store";
 import { Card } from "@/components/ui/card";
 
 export default function AdminStationsPage() {
-  const stations = useMockStore((s) =>
-    [...s.stations].sort((a, b) => a.sort_order - b.sort_order),
-  );
+  const stationList = useMockStore((s) => s.stations);
   const items = useMockStore((s) => s.items);
+  const stations = useMemo(
+    () => [...stationList].sort((a, b) => a.sort_order - b.sort_order),
+    [stationList],
+  );
 
   return (
     <>
       <p className="mb-4 text-body text-muted-foreground">
-        Stations group items in physical walk order. Edit and reorder are
-        wired up in the catalog sprint.
+        Stations group items in physical walk order. Edit and reorder are wired
+        up in the catalog sprint.
       </p>
       <Card className="overflow-hidden bg-card p-0">
         <ul className="divide-y divide-border">
