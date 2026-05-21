@@ -82,6 +82,19 @@ Branch per sprint. Merge to `main` only after acceptance criteria pass.
 | 6 | `feat/manager-dashboard` | Manager: dashboard + variance + approve/reject |
 | 7 | `feat/observability` | CSV export + PostHog + Sentry + PWA polish |
 | 8 | `chore/pilot-prep` | Daniel-specific seed + bug bash + pilot runbook |
+| 9–20 | Platform sprints | xtraCHEF parity — see `../mise-build/docs/09-platform-roadmap.md` |
+
+## Platform features (Back office)
+
+The **Back office** section (`/back-office`) implements xtraCHEF parity on mock data:
+
+- Vendors, products, invoices + approval workflow
+- Recipe costing + plate margins
+- Par-driven orders
+- AvT / COGS reports
+- Toast POS sync status
+
+Schema extension: `supabase/migrations/0002_platform_extensions.sql`
 
 ## License
 

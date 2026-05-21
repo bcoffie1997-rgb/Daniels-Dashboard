@@ -7,14 +7,12 @@ import { useAppUser } from "@/components/auth-provider";
 import { hasMinRole } from "@/lib/auth/config";
 
 const TABS = [
-  { href: "/insights", label: "Overview" },
-  { href: "/insights/bar", label: "Bar" },
-  { href: "/insights/wine", label: "Wine" },
-  { href: "/insights/inventory", label: "Inventory" },
-  { href: "/insights/events", label: "Events" },
+  { href: "/admin/stations", label: "Stations" },
+  { href: "/admin/items", label: "Items" },
+  { href: "/admin/users", label: "Users" },
 ];
 
-export default function InsightsLayout({
+export default function AdminShell({
   children,
 }: {
   children: React.ReactNode;
@@ -22,15 +20,14 @@ export default function InsightsLayout({
   const user = useAppUser();
   const pathname = usePathname();
 
-  if (!user || !hasMinRole(user.role, "manager")) {
+  if (!user || !hasMinRole(user.role, "admin")) {
     return (
       <div className="mx-auto max-w-2xl px-4 py-10 lg:px-8">
         <h1 className="font-display text-display-lg text-foreground">
-          Manager access required
+          Admin access required
         </h1>
         <p className="mt-3 text-body text-muted-foreground">
-          Insights are visible to managers and admins. Switch role in settings
-          to continue.
+          This area is reserved for admins.
         </p>
         <Link
           href="/settings"
@@ -43,25 +40,22 @@ export default function InsightsLayout({
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-6 lg:px-8 lg:py-10">
+    <div className="mx-auto max-w-6xl px-4 py-6 lg:px-8 lg:py-10">
       <header className="mb-6">
-        <p className="caption text-muted-foreground">Daniel&apos;s · operations</p>
+        <p className="caption text-muted-foreground">Catalog</p>
         <h1 className="mt-1 font-display text-display-lg text-foreground lg:text-display-xl">
-          Insights
+          Admin
         </h1>
       </header>
-      <nav className="mb-6 flex gap-1 overflow-x-auto border-b border-border">
+      <nav className="mb-6 flex gap-1 border-b border-border">
         {TABS.map((t) => {
-          const active =
-            t.href === "/insights"
-              ? pathname === "/insights"
-              : pathname.startsWith(t.href);
+          const active = pathname.startsWith(t.href);
           return (
             <Link
               key={t.href}
               href={t.href}
               className={cn(
-                "shrink-0 px-4 py-3 text-body transition-colors",
+                "px-4 py-3 text-body transition-colors",
                 active
                   ? "border-b-2 border-accent text-foreground"
                   : "text-muted-foreground hover:text-foreground",

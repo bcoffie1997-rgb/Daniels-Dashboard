@@ -8,14 +8,40 @@ import {
   seedStations,
   seedUsers,
 } from "./seed";
+import {
+  seedAvtVariances,
+  seedInvoiceLines,
+  seedInvoices,
+  seedMenuItems,
+  seedOrderLines,
+  seedOrders,
+  seedProductVendors,
+  seedProducts,
+  seedRecipeLines,
+  seedRecipes,
+  seedToastSync,
+  seedVendors,
+} from "./platform-seed";
 import type {
+  AvtVariance,
   CountEntry,
   CountSession,
+  Invoice,
+  InvoiceLine,
   Item,
+  MenuItem,
+  Order,
+  OrderLine,
+  Product,
+  ProductVendor,
+  Recipe,
+  RecipeLine,
   Role,
   SessionStatus,
   Station,
+  ToastSyncStatus,
   User,
+  Vendor,
 } from "./types";
 
 // All state is in-memory. Refreshing resets to seed — intentional for the
@@ -29,6 +55,20 @@ interface MockState {
   sessions: CountSession[];
   entries: CountEntry[];
 
+  // Platform (xtraCHEF parity)
+  vendors: Vendor[];
+  products: Product[];
+  productVendors: ProductVendor[];
+  invoices: Invoice[];
+  invoiceLines: InvoiceLine[];
+  menuItems: MenuItem[];
+  recipes: Recipe[];
+  recipeLines: RecipeLine[];
+  orders: Order[];
+  orderLines: OrderLine[];
+  toastSync: ToastSyncStatus;
+  avtVariances: AvtVariance[];
+
   setCurrentUserByRole: (role: Role) => void;
   signOut: () => void;
 
@@ -41,6 +81,37 @@ interface MockState {
   approveSession: (sessionId: string, managerNotes?: string) => void;
   rejectSession: (sessionId: string, reason: string) => void;
   setManagerNotes: (sessionId: string, notes: string) => void;
+
+  approveInvoice: (invoiceId: string) => void;
+  rejectInvoice: (invoiceId: string, reason: string) => void;
+  submitOrder: (orderId: string) => void;
+
+  // Admin catalog mutations
+  createStation: (name: string, sort_order?: number) => Station;
+  updateStation: (id: string, updates: Partial<Pick<Station, "name">>) => void;
+  archiveStation: (id: string, active: boolean) => void;
+  reorderStations: (orderedIds: string[]) => void;
+
+  createItem: (
+    station_id: string,
+    name: string,
+    unit: string,
+    par_level?: number | null,
+    sort_order?: number,
+  ) => Item;
+  updateItem: (
+    id: string,
+    updates: Partial<Pick<Item, "name" | "unit" | "par_level" | "station_id">>,
+  ) => void;
+  archiveItem: (id: string, active: boolean) => void;
+  reorderItems: (stationId: string, orderedIds: string[]) => void;
+  bulkImportItems: (
+    station_id: string,
+    rows: { name: string; unit: string; par_level?: number | null }[],
+  ) => number;
+
+  setUserRole: (id: string, role: Role) => void;
+  setUserActive: (id: string, active: boolean) => void;
 }
 
 const uid = (prefix: string) =>
@@ -61,6 +132,19 @@ export const useMockStore = create<MockState>((set, get) => ({
   items: seedItems,
   sessions: seedSessions,
   entries: seedEntries,
+
+  vendors: seedVendors,
+  products: seedProducts,
+  productVendors: seedProductVendors,
+  invoices: seedInvoices,
+  invoiceLines: seedInvoiceLines,
+  menuItems: seedMenuItems,
+  recipes: seedRecipes,
+  recipeLines: seedRecipeLines,
+  orders: seedOrders,
+  orderLines: seedOrderLines,
+  toastSync: seedToastSync,
+  avtVariances: seedAvtVariances,
 
   setCurrentUserByRole: (role) => {
     const user = get().users.find((u) => u.role === role && u.active);
@@ -227,6 +311,170 @@ export const useMockStore = create<MockState>((set, get) => ({
       sessions: get().sessions.map((s) =>
         s.id === sessionId ? { ...s, manager_notes: notes } : s,
       ),
+    });
+  },
+
+  approveInvoice: (invoiceId) => {
+    const { currentUserId } = get();
+    set({
+      invoices: get().invoices.map((inv) =>
+        inv.id === invoiceId
+          ? {
+              ...inv,
+              status: "approved" as const,
+              approved_by: currentUserId,
+              approved_at: new Date().toISOString(),
+            }
+          : inv,
+      ),
+    });
+  },
+
+  rejectInvoice: (invoiceId, reason) => {
+    const { currentUserId } = get();
+    set({
+      invoices: get().invoices.map((inv) =>
+        inv.id === invoiceId
+          ? {
+              ...inv,
+              status: "rejected" as const,
+              rejection_reason: reason,
+              approved_by: currentUserId,
+              approved_at: new Date().toISOString(),
+            }
+          : inv,
+      ),
+    });
+  },
+
+  submitOrder: (orderId) => {
+    set({
+      orders: get().orders.map((o) =>
+        o.id === orderId
+          ? {
+              ...o,
+              status: "submitted" as const,
+              submitted_at: new Date().toISOString(),
+            }
+          : o,
+      ),
+    });
+  },
+
+  createStation: (name, sort_order) => {
+    const stations = get().stations;
+    const maxOrder = Math.max(0, ...stations.map((s) => s.sort_order));
+    const newStation: Station = {
+      id: uid("st"),
+      name,
+      sort_order: sort_order ?? maxOrder + 10,
+      active: true,
+    };
+    set({ stations: [...stations, newStation] });
+    return newStation;
+  },
+
+  updateStation: (id, updates) => {
+    set({
+      stations: get().stations.map((s) =>
+        s.id === id ? { ...s, ...updates } : s,
+      ),
+    });
+  },
+
+  archiveStation: (id, active) => {
+    set({
+      stations: get().stations.map((s) =>
+        s.id === id ? { ...s, active } : s,
+      ),
+    });
+  },
+
+  reorderStations: (orderedIds) => {
+    const stations = get().stations;
+    const map = new Map(stations.map((s) => [s.id, s]));
+    const reordered = orderedIds
+      .map((id) => map.get(id))
+      .filter(Boolean) as Station[];
+    set({
+      stations: reordered.map((s, i) => ({ ...s, sort_order: (i + 1) * 10 })),
+    });
+  },
+
+  createItem: (station_id, name, unit, par_level, sort_order) => {
+    const items = get().items;
+    const stationItems = items.filter((i) => i.station_id === station_id);
+    const maxOrder = Math.max(0, ...stationItems.map((i) => i.sort_order));
+    const newItem: Item = {
+      id: uid("it"),
+      station_id,
+      name,
+      unit: unit as Item["unit"],
+      sort_order: sort_order ?? maxOrder + 10,
+      par_level: par_level ?? null,
+      active: true,
+    };
+    set({ items: [...items, newItem] });
+    return newItem;
+  },
+
+  updateItem: (id, updates) => {
+    set({
+      items: get().items.map((i) => (i.id === id ? { ...i, ...updates } : i)),
+    });
+  },
+
+  archiveItem: (id, active) => {
+    set({
+      items: get().items.map((i) => (i.id === id ? { ...i, active } : i)),
+    });
+  },
+
+  reorderItems: (stationId, orderedIds) => {
+    const items = get().items;
+    const stationItems = items.filter((i) => i.station_id === stationId);
+    const otherItems = items.filter((i) => i.station_id !== stationId);
+    const map = new Map(stationItems.map((i) => [i.id, i]));
+    const reordered = orderedIds
+      .map((id) => map.get(id))
+      .filter(Boolean) as Item[];
+    set({
+      items: [
+        ...otherItems,
+        ...reordered.map((i, idx) => ({
+          ...i,
+          sort_order: (idx + 1) * 10,
+        })),
+      ],
+    });
+  },
+
+  bulkImportItems: (station_id, rows) => {
+    const items = get().items;
+    const stationItems = items.filter((i) => i.station_id === station_id);
+    const maxOrder = Math.max(0, ...stationItems.map((i) => i.sort_order));
+    const newItems: Item[] = rows.map((r, idx) => ({
+      id: uid("it"),
+      station_id,
+      name: r.name,
+      unit: r.unit as Item["unit"],
+      sort_order: maxOrder + (idx + 1) * 10,
+      par_level: r.par_level ?? null,
+      active: true,
+    }));
+    set({ items: [...items, ...newItems] });
+    return newItems.length;
+  },
+
+  setUserRole: (id, role) => {
+    set({
+      users: get().users.map((u) => (u.id === id ? { ...u, role } : u)),
+    });
+  },
+
+  setUserActive: (id, active) => {
+    set({
+      users: get().users.map((u) => (u.id === id ? { ...u, active } : u)),
     });
   },
 }));

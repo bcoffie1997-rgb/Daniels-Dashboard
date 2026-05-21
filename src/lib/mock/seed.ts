@@ -66,8 +66,8 @@ export const seedStations: Station[] = [
 
 export const seedItems: Item[] = [
   // Walk-in 1 — Proteins (in physical walk order)
-  { id: "i-1", station_id: "s-walkin1", name: "Ribeye, 14 oz", unit: "each", sort_order: 10, par_level: 40, active: true },
-  { id: "i-2", station_id: "s-walkin1", name: "Filet mignon, 8 oz", unit: "each", sort_order: 20, par_level: 32, active: true },
+  { id: "i-1", station_id: "s-walkin1", name: "Ribeye, 14 oz", unit: "each", sort_order: 10, par_level: 40, product_id: "p-ribeye", active: true },
+  { id: "i-2", station_id: "s-walkin1", name: "Filet mignon, 8 oz", unit: "each", sort_order: 20, par_level: 32, product_id: "p-filet", active: true },
   { id: "i-3", station_id: "s-walkin1", name: "New York strip, 12 oz", unit: "each", sort_order: 30, par_level: 28, active: true },
   { id: "i-4", station_id: "s-walkin1", name: "Dry-aged tomahawk", unit: "each", sort_order: 40, par_level: 8, active: true },
   { id: "i-5", station_id: "s-walkin1", name: "Lamb chop, frenched", unit: "each", sort_order: 50, par_level: 24, active: true },

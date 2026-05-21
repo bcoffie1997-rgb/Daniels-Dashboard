@@ -9,12 +9,13 @@ import {
   LineChart,
   Settings,
   Shield,
+  Building2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useMockStore, selectCurrentUser } from "@/lib/mock/store";
+import { useAppUser } from "@/components/auth-provider";
+import { hasMinRole, type Role } from "@/lib/auth/config";
 import { ProfileMenu } from "@/components/profile-menu";
 import { SyncIndicator } from "@/components/sync-indicator";
-import type { Role } from "@/lib/mock/types";
 
 interface NavItem {
   href: string;
@@ -38,18 +39,18 @@ const NAV: NavItem[] = [
     icon: LineChart,
     minRole: "manager",
   },
+  {
+    href: "/back-office",
+    label: "Back office",
+    icon: Building2,
+    minRole: "manager",
+  },
   { href: "/admin/stations", label: "Admin", icon: Shield, minRole: "admin" },
   { href: "/settings", label: "Settings", icon: Settings, minRole: "counter" },
 ];
 
-const ROLE_RANK: Record<Role, number> = {
-  counter: 0,
-  manager: 1,
-  admin: 2,
-};
-
 function visibleFor(role: Role): NavItem[] {
-  return NAV.filter((item) => ROLE_RANK[role] >= ROLE_RANK[item.minRole]);
+  return NAV.filter((item) => hasMinRole(role, item.minRole));
 }
 
 function isActive(pathname: string, href: string) {
@@ -58,7 +59,7 @@ function isActive(pathname: string, href: string) {
 }
 
 export function AppShell({ children }: { children: React.ReactNode }) {
-  const user = useMockStore(selectCurrentUser);
+  const user = useAppUser();
   const pathname = usePathname();
 
   if (!user) return <>{children}</>;

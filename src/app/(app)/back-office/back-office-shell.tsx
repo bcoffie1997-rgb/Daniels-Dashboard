@@ -7,14 +7,17 @@ import { useAppUser } from "@/components/auth-provider";
 import { hasMinRole } from "@/lib/auth/config";
 
 const TABS = [
-  { href: "/insights", label: "Overview" },
-  { href: "/insights/bar", label: "Bar" },
-  { href: "/insights/wine", label: "Wine" },
-  { href: "/insights/inventory", label: "Inventory" },
-  { href: "/insights/events", label: "Events" },
+  { href: "/back-office", label: "Overview", exact: true },
+  { href: "/back-office/invoices", label: "Invoices" },
+  { href: "/back-office/vendors", label: "Vendors" },
+  { href: "/back-office/products", label: "Products" },
+  { href: "/back-office/recipes", label: "Recipes" },
+  { href: "/back-office/orders", label: "Orders" },
+  { href: "/back-office/reports", label: "Reports" },
+  { href: "/back-office/toast", label: "Toast" },
 ];
 
-export default function InsightsLayout({
+export default function BackOfficeShell({
   children,
 }: {
   children: React.ReactNode;
@@ -29,8 +32,7 @@ export default function InsightsLayout({
           Manager access required
         </h1>
         <p className="mt-3 text-body text-muted-foreground">
-          Insights are visible to managers and admins. Switch role in settings
-          to continue.
+          Back office features are for managers and admins.
         </p>
         <Link
           href="/settings"
@@ -43,19 +45,22 @@ export default function InsightsLayout({
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-6 lg:px-8 lg:py-10">
+    <div className="mx-auto max-w-6xl px-4 py-6 lg:px-8 lg:py-10">
       <header className="mb-6">
-        <p className="caption text-muted-foreground">Daniel&apos;s · operations</p>
+        <p className="caption text-muted-foreground">Platform</p>
         <h1 className="mt-1 font-display text-display-lg text-foreground lg:text-display-xl">
-          Insights
+          Back office
         </h1>
+        <p className="mt-2 max-w-2xl text-body text-muted-foreground">
+          Vendors, invoices, recipes, and Toast sync — built for Daniel&apos;s
+          workflow.
+        </p>
       </header>
-      <nav className="mb-6 flex gap-1 overflow-x-auto border-b border-border">
+      <nav className="mb-6 -mx-4 flex gap-1 overflow-x-auto border-b border-border px-4 lg:mx-0 lg:px-0">
         {TABS.map((t) => {
-          const active =
-            t.href === "/insights"
-              ? pathname === "/insights"
-              : pathname.startsWith(t.href);
+          const active = t.exact
+            ? pathname === t.href
+            : pathname.startsWith(t.href);
           return (
             <Link
               key={t.href}

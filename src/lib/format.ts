@@ -35,3 +35,25 @@ export function formatDuration(
   if (m === 0) return `${s}s`;
   return `${m}m ${s}s`;
 }
+
+export function formatMoney(
+  n: number,
+  opts: { compact?: boolean } = {},
+): string {
+  if (opts.compact && Math.abs(n) >= 1000) {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+      notation: "compact",
+      maximumFractionDigits: 1,
+    }).format(n);
+  }
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+  }).format(n);
+}
+
+export function formatPct(n: number): string {
+  return `${(n * 100).toFixed(1)}%`;
+}

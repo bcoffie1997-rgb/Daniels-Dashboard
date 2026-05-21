@@ -12,23 +12,19 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useMockStore, selectCurrentUser } from "@/lib/mock/store";
-import type { Role } from "@/lib/mock/types";
+import { useAuth } from "@/components/auth-provider";
+import { useMockStore } from "@/lib/mock/store";
+import { ROLE_LABEL, type Role } from "@/lib/auth/config";
 import { Button } from "@/components/ui/button";
-
-const ROLE_LABEL: Record<Role, string> = {
-  counter: "Counter",
-  manager: "Manager",
-  admin: "Admin",
-};
 
 export function ProfileMenu() {
   const router = useRouter();
-  const user = useMockStore(selectCurrentUser);
+  const { user, isMock, signOut } = useAuth();
   const setRole = useMockStore((s) => s.setCurrentUserByRole);
-  const signOut = useMockStore((s) => s.signOut);
 
   if (!user) return null;
+
+  const displayName = user.full_name ?? user.email;
 
   return (
     <DropdownMenu>
@@ -48,25 +44,31 @@ export function ProfileMenu() {
       <DropdownMenuContent align="end" className="w-64">
         <DropdownMenuLabel className="px-2 py-2">
           <div className="text-body font-medium text-foreground">
-            {user.full_name}
+            {displayName}
           </div>
-          <div className="text-body-sm text-muted-foreground">
-            {user.email}
-          </div>
+          <div className="text-body-sm text-muted-foreground">{user.email}</div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuLabel className="caption text-muted-foreground">
-          Demo: switch role
-        </DropdownMenuLabel>
-        <DropdownMenuRadioGroup
-          value={user.role}
-          onValueChange={(v) => setRole(v as Role)}
-        >
-          <DropdownMenuRadioItem value="counter">Counter</DropdownMenuRadioItem>
-          <DropdownMenuRadioItem value="manager">Manager</DropdownMenuRadioItem>
-          <DropdownMenuRadioItem value="admin">Admin</DropdownMenuRadioItem>
-        </DropdownMenuRadioGroup>
-        <DropdownMenuSeparator />
+        {isMock && (
+          <>
+            <DropdownMenuLabel className="caption text-muted-foreground">
+              Demo: switch role
+            </DropdownMenuLabel>
+            <DropdownMenuRadioGroup
+              value={user.role}
+              onValueChange={(v) => setRole(v as Role)}
+            >
+              <DropdownMenuRadioItem value="counter">
+                Counter
+              </DropdownMenuRadioItem>
+              <DropdownMenuRadioItem value="manager">
+                Manager
+              </DropdownMenuRadioItem>
+              <DropdownMenuRadioItem value="admin">Admin</DropdownMenuRadioItem>
+            </DropdownMenuRadioGroup>
+            <DropdownMenuSeparator />
+          </>
+        )}
         <DropdownMenuItem
           onClick={() => router.push("/settings")}
           className="cursor-pointer"
@@ -74,9 +76,10 @@ export function ProfileMenu() {
           Settings
         </DropdownMenuItem>
         <DropdownMenuItem
-          onClick={() => {
-            signOut();
+          onClick={async () => {
+            await signOut();
             router.push("/login");
+            router.refresh();
           }}
           className="cursor-pointer text-destructive focus:text-destructive"
         >
