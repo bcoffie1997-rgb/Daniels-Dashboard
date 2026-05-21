@@ -13,8 +13,8 @@ export default function LoginPage() {
 
   const continueAs = (role: Role) => {
     setRole(role);
-    if (role === "admin") router.push("/admin/stations");
-    else if (role === "manager") router.push("/dashboard");
+    if (role === "admin") router.push("/insights");
+    else if (role === "manager") router.push("/insights");
     else router.push("/");
   };
 

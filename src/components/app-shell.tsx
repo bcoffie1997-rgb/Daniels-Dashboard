@@ -6,6 +6,7 @@ import {
   ClipboardList,
   History,
   LayoutDashboard,
+  LineChart,
   Settings,
   Shield,
 } from "lucide-react";
@@ -27,8 +28,14 @@ const NAV: NavItem[] = [
   { href: "/sessions", label: "My counts", icon: History, minRole: "counter" },
   {
     href: "/dashboard",
-    label: "Dashboard",
+    label: "Sessions",
     icon: LayoutDashboard,
+    minRole: "manager",
+  },
+  {
+    href: "/insights",
+    label: "Insights",
+    icon: LineChart,
     minRole: "manager",
   },
   { href: "/admin/stations", label: "Admin", icon: Shield, minRole: "admin" },
