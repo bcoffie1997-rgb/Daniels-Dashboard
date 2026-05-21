@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "gioia-mise",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["dev", "--port", "3031"],
+      "port": 3031
+    }
+  ]
+}
