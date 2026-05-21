@@ -2,26 +2,117 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/* ============================================================================
+   MISE — Design tokens
+   Daniel's, A Florida Steakhouse — applied brand
+   ============================================================================ */
 
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    /* Daniel's brand primitives */
+    --daniels-forest: 165 100% 14%;        /* #004539 */
+    --daniels-cream: 38 100% 99%;          /* #FFFDFA */
+
+    /* App surface */
+    --background: 162 33% 8%;              /* #0E1B17 */
+    --foreground: 38 100% 99%;             /* #FFFDFA */
+
+    --card: 162 24% 12%;                   /* #15241F */
+    --card-foreground: 38 100% 99%;
+
+    --popover: 161 24% 15%;                /* #1C2E27 */
+    --popover-foreground: 38 100% 99%;
+
+    --primary: 165 100% 14%;               /* #004539 — Daniel's forest */
+    --primary-foreground: 38 100% 99%;
+
+    --secondary: 162 24% 12%;
+    --secondary-foreground: 38 100% 99%;
+
+    --muted: 162 17% 18%;
+    --muted-foreground: 145 7% 69%;        /* #A8B5AE */
+
+    --accent: 145 21% 57%;                 /* #7BA890 — sage */
+    --accent-foreground: 165 100% 14%;
+
+    --destructive: 7 51% 54%;              /* #C85A4E — terracotta */
+    --destructive-foreground: 38 100% 99%;
+    --destructive-bg: 14 35% 17%;          /* #3A1F1B */
+
+    --warning: 39 60% 56%;                 /* #D4A24A — warm gold */
+    --warning-foreground: 162 33% 8%;
+    --warning-bg: 31 38% 16%;              /* #3A2F1A */
+
+    --success: 145 21% 57%;
+    --success-foreground: 165 100% 14%;
+
+    --border: 161 17% 20%;                 /* #2A3D35 */
+    --input: 161 17% 20%;
+    --ring: 145 21% 57%;                   /* sage focus ring */
+
+    --radius: 0.5rem;                      /* 8px default */
+  }
+
+  /* Mise is dark-by-default; .dark mirrors :root so the `dark` class on
+     <html> doesn't flip tokens to unintended values. */
+  .dark {
+    --daniels-forest: 165 100% 14%;
+    --daniels-cream: 38 100% 99%;
+    --background: 162 33% 8%;
+    --foreground: 38 100% 99%;
+    --card: 162 24% 12%;
+    --card-foreground: 38 100% 99%;
+    --popover: 161 24% 15%;
+    --popover-foreground: 38 100% 99%;
+    --primary: 165 100% 14%;
+    --primary-foreground: 38 100% 99%;
+    --secondary: 162 24% 12%;
+    --secondary-foreground: 38 100% 99%;
+    --muted: 162 17% 18%;
+    --muted-foreground: 145 7% 69%;
+    --accent: 145 21% 57%;
+    --accent-foreground: 165 100% 14%;
+    --destructive: 7 51% 54%;
+    --destructive-foreground: 38 100% 99%;
+    --destructive-bg: 14 35% 17%;
+    --warning: 39 60% 56%;
+    --warning-foreground: 162 33% 8%;
+    --warning-bg: 31 38% 16%;
+    --success: 145 21% 57%;
+    --success-foreground: 165 100% 14%;
+    --border: 161 17% 20%;
+    --input: 161 17% 20%;
+    --ring: 145 21% 57%;
   }
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
-}
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1, "ss01" 1;
+  }
 
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
+  /* Tabular numbers utility for count tables */
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Daniel's caption style — uppercase tracked labels */
+  .caption {
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-size: 13px;
+    line-height: 18px;
+    font-weight: 500;
+  }
+  .micro {
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 11px;
+    line-height: 14px;
+    font-weight: 500;
   }
 }

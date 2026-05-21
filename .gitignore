@@ -34,3 +34,18 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# sentry
+.sentryclirc
+
+# serwist / pwa generated
+/public/sw.js
+/public/sw.js.map
+/public/swe-worker-*.js
+
+# supabase generated
+/supabase/.temp/
+/supabase/.branches/
+
+# never commit Daniel-specific seed
+/supabase/seed-daniel.sql

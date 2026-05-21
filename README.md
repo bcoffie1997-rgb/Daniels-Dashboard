@@ -1,36 +1,88 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Mise
 
-## Getting Started
+Inventory counting Progressive Web App for **Daniel's, A Florida Steakhouse** (Fort Lauderdale). Replaces spreadsheet inventory with a phone-first, offline-capable counting tool with role-based attribution, manager approval, and variance tracking.
 
-First, run the development server:
+The full product spec, sprint prompts, brand guidelines, and locked database schema live in [`../mise-build/`](../mise-build/). Read `../mise-build/START_HERE.md` before changing anything substantive.
+
+## Tech stack
+
+Next.js 14 (App Router) · TypeScript · Tailwind CSS · shadcn/ui · Supabase (Postgres + Auth + Realtime) · Vercel · Serwist (PWA) · Dexie (offline) · Resend · PostHog · Sentry
+
+## Prerequisites
+
+- Node 20+
+- pnpm 9+
+- [Supabase CLI](https://supabase.com/docs/guides/cli) (`brew install supabase/tap/supabase`)
+- [Vercel CLI](https://vercel.com/docs/cli) (`pnpm add -g vercel`)
+- A Supabase project, Resend account, PostHog project, and Sentry project
+
+## Setup
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+# 1. Install dependencies
+pnpm install
+
+# 2. Create local env, then fill values from each service dashboard
+cp .env.example .env.local
+
+# 3. Link the local Supabase project to your remote
+supabase login
+supabase link --project-ref <YOUR_PROJECT_REF>
+
+# 4. Apply the schema
+supabase db push --linked
+
+# 5. Generate TypeScript types from the database
+supabase gen types typescript --linked > src/types/database.ts
+
+# 6. Run the dev server
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open http://localhost:3000.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Environment variables
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+See [`.env.example`](.env.example) for the full list. The non-negotiable values are:
 
-## Learn More
+- `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`
+- `RESEND_API_KEY`, `RESEND_FROM_EMAIL`
+- `NEXT_PUBLIC_POSTHOG_KEY`
+- `NEXT_PUBLIC_SENTRY_DSN`, `SENTRY_ORG`, `SENTRY_PROJECT`, `SENTRY_AUTH_TOKEN`
 
-To learn more about Next.js, take a look at the following resources:
+## Scripts
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| Command | Purpose |
+| --- | --- |
+| `pnpm dev` | Run the dev server on port 3000 |
+| `pnpm build` | Production build |
+| `pnpm start` | Start the production server |
+| `pnpm lint` | Lint with ESLint |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Project structure
 
-## Deploy on Vercel
+The folder layout follows [`../mise-build/docs/04-development.md`](../mise-build/docs/04-development.md). Most logic lives in **Server Actions** (`src/app/(*)/actions.ts`). API routes are reserved for `/api/health`, `/api/sync`, and `/api/export`.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Brand
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Daniel's brand applied: forest `#004539`, cream `#FFFDFA`, Cormorant Garamond for display, Inter for UI, JetBrains Mono for counts. See [`../mise-build/branding/BRAND_GUIDELINES.md`](../mise-build/branding/BRAND_GUIDELINES.md) — no emoji in UI strings, sentence case for body copy, warm hospitality voice.
+
+## Sprint order
+
+Branch per sprint. Merge to `main` only after acceptance criteria pass.
+
+| # | Branch | Scope |
+| --- | --- | --- |
+| 0 | `main` | Infrastructure: repo, Supabase, Vercel, schema, env, design tokens |
+| 1 | `feat/auth` | Auth + roles + middleware + RLS verification |
+| 2 | `feat/admin-catalog` | Admin: stations + items CRUD + drag + bulk import |
+| 3 | `feat/count-flow` | Counter: station picker + count + review + submit (online) |
+| 4 | `feat/offline-sync` | Offline sync (Dexie + Serwist + sync engine) |
+| 5 | `feat/sessions` | Sessions polish + attribution + audit log writes + realtime |
+| 6 | `feat/manager-dashboard` | Manager: dashboard + variance + approve/reject |
+| 7 | `feat/observability` | CSV export + PostHog + Sentry + PWA polish |
+| 8 | `chore/pilot-prep` | Daniel-specific seed + bug bash + pilot runbook |
+
+## License
+
+Private. Do not share, redistribute, or commit Daniel-specific inventory data.
