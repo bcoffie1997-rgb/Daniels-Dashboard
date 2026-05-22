@@ -51,12 +51,14 @@ const DAILY_BASE: Record<RestaurantSlug, number> = {
   miami: 28000,
   "fort-lauderdale": 24000,
   "ds-sports": 12000,
+  "la-sponda": 0, // coming soon
 };
 
 const AVG_CHECK_BASE: Record<RestaurantSlug, number> = {
   miami: 185,
   "fort-lauderdale": 145,
   "ds-sports": 58,
+  "la-sponda": 0,
 };
 
 const DAY_OF_WEEK_FACTOR = [0.72, 0.78, 0.85, 0.95, 1.18, 1.42, 1.32]; // Sun-Sat
@@ -175,6 +177,7 @@ export function topItemsFor(slug: RestaurantSlug, limit = 10): ItemSold[] {
       { name: "Spinach Artichoke Dip", category: "Starter", units: 168, revenue: 2016, cogs: 504 },
       { name: "Brownie Sundae", category: "Dessert", units: 132, revenue: 1716, cogs: 343 },
     ],
+    "la-sponda": [],
   };
   return ITEM_LIBRARY[slug].slice(0, limit);
 }
@@ -198,6 +201,7 @@ export function daypartFor(slug: RestaurantSlug): DaypartSales[] {
       { daypart: "Dinner", gross: 28680, covers: 524 },
       { daypart: "Late Night", gross: 12440, covers: 268 },
     ],
+    "la-sponda": [],
   };
   return baseDinner[slug];
 }
@@ -225,6 +229,7 @@ export function serverScoresFor(slug: RestaurantSlug): ServerScore[] {
       { name: "Reggie F.", shifts: 4, covers: 254, sales: 13620, avgCheck: 54, upsellRate: 51 },
       { name: "Quinn A.", shifts: 5, covers: 298, sales: 16480, avgCheck: 55, upsellRate: 49 },
     ],
+    "la-sponda": [],
   };
   return lib[slug];
 }
@@ -249,6 +254,7 @@ const LABOR_TARGET: Record<RestaurantSlug, number> = {
   miami: 0.26, // labor % of sales
   "fort-lauderdale": 0.28,
   "ds-sports": 0.32,
+  "la-sponda": 0,
 };
 
 export function laborDaysFor(slug: RestaurantSlug, days = 30): LaborDay[] {
@@ -284,6 +290,7 @@ export function roleBreakdownFor(slug: RestaurantSlug): RoleBreakdown[] {
       { role: "Bar", hours: 642, cost: 17420, headcount: 8 },
       { role: "Mgmt", hours: 268, cost: 9420, headcount: 2 },
     ],
+    "la-sponda": [],
   };
   return lib[slug];
 }
@@ -329,6 +336,7 @@ export function foodCostByCategoryFor(slug: RestaurantSlug): FoodCostByCategory[
       { category: "Fryer Oil + Frozen", spend: 9820, pctOfSales: 3.6 },
       { category: "Bar (beer/liquor)", spend: 42320, pctOfSales: 15.7 },
     ],
+    "la-sponda": [],
   };
   return lib[slug];
 }
@@ -357,6 +365,7 @@ export function vendorSpendFor(slug: RestaurantSlug): VendorSpend[] {
       { vendor: "Gulfstream Brewing", spend: 14820, invoices: 12, trend: [3420, 3720, 3940, 3740] },
       { vendor: "Sunshine Provisions", spend: 9820, invoices: 8, trend: [2240, 2440, 2640, 2500] },
     ],
+    "la-sponda": [],
   };
   return lib[slug];
 }

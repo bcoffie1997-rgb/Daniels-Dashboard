@@ -64,12 +64,12 @@ function buildIndex(current?: Restaurant): Entry[] {
 
   const locations: Entry[] = RESTAURANTS.map((r) => ({
     id: `loc-${r.slug}`,
-    label: r.name,
+    label: r.comingSoon ? `${r.name}  ·  Coming ${r.opensAt ?? "soon"}` : r.name,
     detail: r.city,
     href: `/r/${r.slug}`,
     group: "Locations",
     Icon: Layers,
-    keywords: r.shortName,
+    keywords: r.shortName + (r.comingSoon ? " coming soon new" : ""),
   }));
   locations.push({
     id: "loc-group",

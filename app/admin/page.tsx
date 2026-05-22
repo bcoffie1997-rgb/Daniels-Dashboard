@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { RESTAURANTS, type RestaurantSlug } from "@/lib/restaurants";
+import { RESTAURANTS, liveRestaurants, comingSoonRestaurants, type RestaurantSlug } from "@/lib/restaurants";
 import { getKpiFor } from "@/lib/mock-data";
 import { sessionsFor, relativeTime } from "@/lib/seed/sessions";
 import {
@@ -36,7 +36,7 @@ export default function GroupDashboard({
   const range = parseRange(searchParams.range);
   const days = rangeDays(range);
 
-  const locations = RESTAURANTS.map((r) => {
+  const locations = liveRestaurants().map((r) => {
     const allSales = dailySalesFor(r.slug, 365);
     const salesSeries = allSales.map((d) => ({ date: d.date, value: d.gross }));
     const compare = comparePeriods(salesSeries, range);
@@ -262,6 +262,44 @@ export default function GroupDashboard({
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
             {locations.map((l) => (
               <LocationCard key={l.restaurant.slug} restaurant={l.restaurant} kpi={l.kpi} />
+            ))}
+            {comingSoonRestaurants().map((r) => (
+              <Link
+                key={r.slug}
+                href={`/r/${r.slug}`}
+                className="group rounded-lg border border-dashed border-border bg-card overflow-hidden hover:border-accent/50 transition-colors"
+              >
+                <div
+                  className="h-1.5 w-full opacity-60"
+                  style={{ backgroundColor: r.accentHex }}
+                />
+                <div className="p-5">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <div className="font-display text-display-md leading-tight">
+                        {r.name}
+                      </div>
+                      <div className="text-sm text-muted-foreground mt-0.5">{r.city}</div>
+                    </div>
+                    <span
+                      className="text-[10px] uppercase tracking-wider px-2 py-1 rounded-full border font-medium"
+                      style={{
+                        color: r.accentHex,
+                        borderColor: `${r.accentHex}60`,
+                        backgroundColor: `${r.accentHex}15`,
+                      }}
+                    >
+                      Coming {r.opensAt}
+                    </span>
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-4 leading-relaxed">
+                    {r.concept}
+                  </p>
+                  <div className="text-xs text-muted-foreground mt-4 italic">
+                    Dashboards activate when the first count lands.
+                  </div>
+                </div>
+              </Link>
             ))}
           </div>
         </section>

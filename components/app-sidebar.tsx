@@ -291,6 +291,23 @@ export function AdminSidebar() {
               D's Sports Bar
             </Link>
           </li>
+          <li>
+            <Link
+              href="/r/la-sponda"
+              className="flex items-center justify-between gap-2.5 rounded-md px-3 py-1.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
+            >
+              <span className="inline-flex items-center gap-2.5">
+                <span className="h-2 w-2 rounded-full opacity-60" style={{ backgroundColor: "#5B86A3" }} />
+                La Sponda
+              </span>
+              <span
+                className="text-[9px] uppercase tracking-wider px-1.5 py-0.5 rounded-full font-medium"
+                style={{ color: "#5B86A3", backgroundColor: "#5B86A320" }}
+              >
+                Soon
+              </span>
+            </Link>
+          </li>
         </ul>
       </div>
     </nav>

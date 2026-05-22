@@ -63,6 +63,19 @@ const SEED: Record<RestaurantSlug, LocationKpi> = {
       variancePct: -18.7,
     },
   },
+  // Coming soon — La Sponda has no operational data yet
+  "la-sponda": {
+    slug: "la-sponda",
+    lastCountAt: "—",
+    lastCountBy: "—",
+    itemsTracked: 0,
+    stationsActive: 0,
+    pendingApproval: 0,
+    openVariances: 0,
+    avgVariancePct: 0,
+    sessionsThisWeek: 0,
+    topVariance: null,
+  },
 };
 
 export function getKpiFor(slug: RestaurantSlug): LocationKpi {

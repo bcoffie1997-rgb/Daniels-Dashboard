@@ -57,12 +57,27 @@ export function RestaurantSwitcher({ current }: { current?: Restaurant }) {
               >
                 <div className="flex items-center gap-3">
                   <div
-                    className="h-2 w-2 rounded-full"
+                    className={cn("h-2 w-2 rounded-full", r.comingSoon && "opacity-50")}
                     style={{ backgroundColor: r.accentHex }}
                   />
                   <div>
-                    <div className="text-sm font-medium">{r.name}</div>
-                    <div className="text-xs text-muted-foreground">{r.city}</div>
+                    <div className="text-sm font-medium flex items-center gap-2">
+                      {r.name}
+                      {r.comingSoon && (
+                        <span
+                          className="text-[9px] uppercase tracking-wider px-1.5 py-0.5 rounded-full font-medium"
+                          style={{
+                            color: r.accentHex,
+                            backgroundColor: `${r.accentHex}20`,
+                          }}
+                        >
+                          Soon
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {r.comingSoon ? `Opens ${r.opensAt}` : r.city}
+                    </div>
                   </div>
                 </div>
                 {isActive && <Check className="h-4 w-4 text-accent" />}

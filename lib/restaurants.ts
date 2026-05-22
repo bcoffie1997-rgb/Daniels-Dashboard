@@ -1,4 +1,4 @@
-export type RestaurantSlug = "miami" | "fort-lauderdale" | "ds-sports";
+export type RestaurantSlug = "miami" | "fort-lauderdale" | "ds-sports" | "la-sponda";
 
 export type Restaurant = {
   slug: RestaurantSlug;
@@ -8,10 +8,12 @@ export type Restaurant = {
   address: string;
   phone: string;
   concept: string;
-  accent: "miami" | "ftl" | "ds";
+  accent: "miami" | "ftl" | "ds" | "sponda";
   accentHex: string;
   accentDeepHex: string;
   website: string;
+  comingSoon?: boolean;
+  opensAt?: string;
 };
 
 export const RESTAURANTS: Restaurant[] = [
@@ -54,8 +56,31 @@ export const RESTAURANTS: Restaurant[] = [
     accentDeepHex: "#8B2A26",
     website: "https://www.danielssteak.com/fort-lauderdale/ds-sports-bar/",
   },
+  {
+    slug: "la-sponda",
+    name: "La Sponda",
+    shortName: "La Sponda",
+    city: "Coconut Grove, FL",
+    address: "Vita at Grove Isle · 4 Grove Isle Dr., Miami",
+    phone: "—",
+    concept: "Coastal Italian · seasonal ingredients · lunch · brunch · dinner",
+    accent: "sponda",
+    accentHex: "#5B86A3",
+    accentDeepHex: "#2C4A66",
+    website: "https://www.gioiahp.com/",
+    comingSoon: true,
+    opensAt: "Late 2026",
+  },
 ];
 
 export function getRestaurant(slug: string): Restaurant | undefined {
   return RESTAURANTS.find((r) => r.slug === slug);
+}
+
+export function liveRestaurants(): Restaurant[] {
+  return RESTAURANTS.filter((r) => !r.comingSoon);
+}
+
+export function comingSoonRestaurants(): Restaurant[] {
+  return RESTAURANTS.filter((r) => r.comingSoon);
 }
