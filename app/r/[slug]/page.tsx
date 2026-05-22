@@ -255,7 +255,7 @@ function NavCard({
   return (
     <Link
       href={href}
-      className={`group rounded-lg border bg-card p-5 transition-colors ${
+      className={`group block h-full rounded-lg border bg-card p-5 transition-colors ${
         muted ? "border-border hover:border-accent/40" : "border-border hover:border-accent/60"
       }`}
     >
