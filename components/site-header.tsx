@@ -8,6 +8,8 @@ export function SiteHeader({ current }: { current?: Restaurant }) {
   const base = current ? `/r/${current.slug}` : "/r/fort-lauderdale";
   const links: Array<{ href: string; label: string; accent?: boolean }> = [
     { href: `${base}`, label: "Dashboard" },
+    { href: `${base}/count`, label: "Count" },
+    { href: `${base}/approvals`, label: "Approvals" },
     { href: `${base}/inventory`, label: "Inventory" },
     { href: `${base}/reorder`, label: "Reorder" },
     { href: `${base}/recipes`, label: "Recipes" },

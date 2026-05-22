@@ -65,7 +65,7 @@ export default function RestaurantDashboard({ params }: { params: { slug: string
               </div>
             </div>
             <Link
-              href={`/r/${restaurant.slug}/inventory`}
+              href={`/r/${restaurant.slug}/count`}
               className="inline-flex items-center gap-2 rounded-md bg-accent text-accent-foreground px-4 py-2.5 text-sm font-medium hover:bg-accent/90 transition-colors"
             >
               Choose station <ChevronRight className="h-4 w-4" />
@@ -97,6 +97,12 @@ export default function RestaurantDashboard({ params }: { params: { slug: string
 
         <section className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-10">
           <NavCard
+            href={`/r/${restaurant.slug}/approvals`}
+            caption="Approvals"
+            title={kpi.pendingApproval > 0 ? `${kpi.pendingApproval} pending` : "All clear"}
+            sub="Manager queue — review and approve / reject counts"
+          />
+          <NavCard
             href={`/r/${restaurant.slug}/inventory`}
             caption="Inventory"
             title="By station"
@@ -115,17 +121,17 @@ export default function RestaurantDashboard({ params }: { params: { slug: string
             sub="Theoretical usage source for AvT"
           />
           <NavCard
+            href={`/r/${restaurant.slug}/menu`}
+            caption="Menu"
+            title={`${totalMenuItems} dishes`}
+            sub="Full published menu by section"
+          />
+          <NavCard
             href={`/r/${restaurant.slug}/avt`}
             caption="AvT"
             title="Actual vs Theoretical"
             sub="v2 preview · awaiting Toast sales feed"
             muted
-          />
-          <NavCard
-            href={`/r/${restaurant.slug}/menu`}
-            caption="Menu"
-            title={`${totalMenuItems} dishes`}
-            sub="Full published menu by section"
           />
           <NavCard
             href={`/r/${restaurant.slug}/integrations`}
