@@ -106,7 +106,12 @@ export default function InventoryPage({ params }: { params: { slug: string } }) 
                         <tr key={i} className="hover:bg-muted/30">
                           <td className="px-4 py-2.5">
                             <div className="flex items-center gap-2 flex-wrap">
-                              <span className="font-medium sm:font-normal">{it.name}</span>
+                              <Link
+                                href={`/r/${restaurant.slug}/items/${encodeURIComponent(it.name)}`}
+                                className="font-medium sm:font-normal hover:text-accent transition-colors"
+                              >
+                                {it.name}
+                              </Link>
                               {it.requiresDualCount && (
                                 <span
                                   className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded border border-accent/40 bg-accent/10 text-accent font-medium"

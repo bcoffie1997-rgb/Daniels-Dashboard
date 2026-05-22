@@ -4,9 +4,13 @@ import { getRestaurant, type RestaurantSlug } from "@/lib/restaurants";
 import {
   laborDaysFor,
   roleBreakdownFor,
-  dailySalesFor,
+  forecastFromSeries,
+  comparePeriods,
+  rangeDays,
+  rangeLabel,
 } from "@/lib/seed/analytics";
 import { LineChart, BarChart } from "@/components/charts";
+import { TimeRangeSelector, parseRange } from "@/components/time-range";
 import { Badge } from "@/components/ui/badge";
 import {
   ChevronRight,
@@ -16,23 +20,38 @@ import {
   DollarSign,
   TrendingDown,
   AlertTriangle,
+  ArrowUpRight,
+  ArrowDownRight,
+  Sparkles,
 } from "lucide-react";
 
-export default function LaborDashboard({ params }: { params: { slug: string } }) {
+export default function LaborDashboard({
+  params,
+  searchParams,
+}: {
+  params: { slug: string };
+  searchParams: { range?: string };
+}) {
   const restaurant = getRestaurant(params.slug);
   if (!restaurant) notFound();
   const slug = restaurant.slug as RestaurantSlug;
   const ACCENT = restaurant.accentHex;
+  const range = parseRange(searchParams.range);
+  const days_n = rangeDays(range);
 
-  const days = laborDaysFor(slug, 30);
-  const sales = dailySalesFor(slug, 30);
-  const last7 = days.slice(-7);
-  const prior7 = days.slice(-14, -7);
+  const allDays = laborDaysFor(slug, 365);
+  const days = allDays.slice(-days_n);
+  const last7 = allDays.slice(-7);
   const last7Cost = last7.reduce((s, d) => s + d.cost, 0);
   const last7Sales = last7.reduce((s, d) => s + d.sales, 0);
   const last7Hours = last7.reduce((s, d) => s + d.hours, 0);
   const last7Pct = (last7Cost / last7Sales) * 100;
+  const prior7 = allDays.slice(-14, -7);
   const prior7Pct = (prior7.reduce((s, d) => s + d.cost, 0) / prior7.reduce((s, d) => s + d.sales, 0)) * 100;
+
+  const costSeries = allDays.map((d) => ({ date: d.date, value: d.cost }));
+  const costCompare = comparePeriods(costSeries, range);
+  const forecast = forecastFromSeries(allDays.slice(-90).map((d) => d.cost));
 
   // Prime cost estimate (labor% + food cost%) — assume food cost at typical rate per slug
   const foodCostPct = slug === "miami" ? 31 : slug === "fort-lauderdale" ? 31 : 34;
@@ -62,18 +81,58 @@ export default function LaborDashboard({ params }: { params: { slug: string } })
           </div>
           <h1 className="font-display text-display-2xl tracking-tight">Labor</h1>
           <p className="text-muted-foreground mt-2 max-w-2xl">
-            Labor cost as % of sales, hours, overtime exposure, prime cost. Per-role
-            breakdown and trend.
+            {rangeLabel(range)} at {restaurant.shortName}. Labor cost % of sales, hours,
+            overtime, prime cost.
           </p>
         </div>
-        <Link
-          href={`/r/${restaurant.slug}/integrations`}
-          className="inline-flex items-center gap-2 rounded-md border border-warning/40 bg-warning-bg px-3 py-2 text-sm text-warning hover:border-warning transition-colors"
-        >
-          <Plug className="h-4 w-4" />
-          Mock — connect 7shifts / Toast Payroll
-        </Link>
+        <div className="flex items-center gap-2 flex-wrap">
+          <TimeRangeSelector basePath={`/r/${restaurant.slug}/labor`} current={range} />
+          <Link
+            href={`/r/${restaurant.slug}/integrations`}
+            className="inline-flex items-center gap-2 rounded-md border border-warning/40 bg-warning-bg px-3 py-2 text-sm text-warning hover:border-warning transition-colors"
+          >
+            <Plug className="h-4 w-4" />
+            Mock — connect 7shifts
+          </Link>
+        </div>
       </div>
+
+      <section className="rounded-lg border border-accent/40 bg-accent/5 p-4 mb-6 flex items-center gap-4 flex-wrap">
+        <div className="flex items-center gap-2 shrink-0">
+          <Sparkles className="h-4 w-4 text-accent" />
+          <span className="micro text-accent">Forecast · trailing 90d trend</span>
+        </div>
+        <div className="flex-1 flex flex-wrap gap-x-8 gap-y-3 min-w-0">
+          <div>
+            <div className="micro text-muted-foreground">Projected labor next 7d</div>
+            <div className="font-display text-display-md tabular mt-1 inline-flex items-baseline gap-2">
+              ${(forecast.next7d / 1000).toFixed(1)}k
+              {forecast.trend === "up" && <ArrowUpRight className="h-3 w-3 text-warning" />}
+              {forecast.trend === "down" && <ArrowDownRight className="h-3 w-3 text-success" />}
+            </div>
+          </div>
+          <div>
+            <div className="micro text-muted-foreground">Projected next 30d</div>
+            <div className="font-display text-display-md tabular mt-1">
+              ${(forecast.next30d / 1000).toFixed(0)}k
+            </div>
+          </div>
+          <div>
+            <div className="micro text-muted-foreground">vs prior period</div>
+            <div
+              className={`font-display text-display-md tabular mt-1 ${
+                costCompare.vsPriorPct >= 0 ? "text-warning" : "text-success"
+              }`}
+            >
+              {costCompare.vsPriorPct >= 0 ? "+" : ""}
+              {costCompare.vsPriorPct.toFixed(1)}%
+            </div>
+          </div>
+        </div>
+        <div className="text-xs text-muted-foreground italic max-w-xs">
+          Up trend is concerning for labor — watch overtime.
+        </div>
+      </section>
 
       <section className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
         <Kpi

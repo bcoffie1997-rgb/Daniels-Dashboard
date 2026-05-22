@@ -8,8 +8,13 @@ import {
   vendorSpendFor,
   varianceTrendFor,
   dailySalesFor,
+  forecastFromSeries,
+  comparePeriods,
+  rangeDays,
+  rangeLabel,
 } from "@/lib/seed/analytics";
 import { LineChart, BarChart, Donut, Sparkline } from "@/components/charts";
+import { TimeRangeSelector, parseRange } from "@/components/time-range";
 import { Badge } from "@/components/ui/badge";
 import {
   ChevronRight,
@@ -20,24 +25,39 @@ import {
   Boxes,
   Receipt,
   XCircle,
+  Sparkles,
+  ArrowUpRight,
+  ArrowDownRight,
 } from "lucide-react";
 
 const PALETTE = ["#7BA890", "#C9A86B", "#E78F8E", "#D4A24A", "#9F9683", "#5E6660"];
 
-export default function FoodCostDashboard({ params }: { params: { slug: string } }) {
+export default function FoodCostDashboard({
+  params,
+  searchParams,
+}: {
+  params: { slug: string };
+  searchParams: { range?: string };
+}) {
   const restaurant = getRestaurant(params.slug);
   if (!restaurant) notFound();
   const slug = restaurant.slug as RestaurantSlug;
   const ACCENT = restaurant.accentHex;
+  const range = parseRange(searchParams.range);
+  const dRange = rangeDays(range);
 
   const seed = getSeed(slug)!;
   const belowPar = belowParItems(seed);
-  const variance = varianceTrendFor(slug, 30);
-  const last7 = variance.slice(-7);
+  const allVariance = varianceTrendFor(slug, 365);
+  const variance = allVariance.slice(-dRange);
+  const last7 = allVariance.slice(-7);
   const avgVariance7 =
     last7.reduce((s, d) => s + d.variancePct, 0) / last7.length;
   const last30AvgVariance =
-    variance.reduce((s, d) => s + d.variancePct, 0) / variance.length;
+    allVariance.slice(-30).reduce((s, d) => s + d.variancePct, 0) / 30;
+  const varianceSeries = allVariance.map((d) => ({ date: d.date, value: d.variancePct }));
+  const varianceCompare = comparePeriods(varianceSeries, range);
+  const varianceForecast = forecastFromSeries(allVariance.slice(-90).map((d) => d.variancePct));
 
   const categories = foodCostByCategoryFor(slug);
   const totalSpend = categories.reduce((s, c) => s + c.spend, 0);
@@ -79,14 +99,55 @@ export default function FoodCostDashboard({ params }: { params: { slug: string }
             and items that need a recount.
           </p>
         </div>
-        <Link
-          href={`/r/${restaurant.slug}/integrations`}
-          className="inline-flex items-center gap-2 rounded-md border border-warning/40 bg-warning-bg px-3 py-2 text-sm text-warning hover:border-warning transition-colors"
-        >
-          <Plug className="h-4 w-4" />
-          Connect invoice OCR for real costs
-        </Link>
+        <div className="flex items-center gap-2 flex-wrap">
+          <TimeRangeSelector basePath={`/r/${restaurant.slug}/food-cost`} current={range} />
+          <Link
+            href={`/r/${restaurant.slug}/integrations`}
+            className="inline-flex items-center gap-2 rounded-md border border-warning/40 bg-warning-bg px-3 py-2 text-sm text-warning hover:border-warning transition-colors"
+          >
+            <Plug className="h-4 w-4" />
+            Connect invoice OCR
+          </Link>
+        </div>
       </div>
+
+      <section className="rounded-lg border border-accent/40 bg-accent/5 p-4 mb-6 flex items-center gap-4 flex-wrap">
+        <div className="flex items-center gap-2 shrink-0">
+          <Sparkles className="h-4 w-4 text-accent" />
+          <span className="micro text-accent">Forecast · variance trend</span>
+        </div>
+        <div className="flex-1 flex flex-wrap gap-x-8 gap-y-3 min-w-0">
+          <div>
+            <div className="micro text-muted-foreground">Projected next 7d avg</div>
+            <div className="font-display text-display-md tabular mt-1 inline-flex items-baseline gap-2">
+              {(varianceForecast.next7d / 7).toFixed(1)}%
+              {varianceForecast.trend === "up" && <ArrowUpRight className="h-3 w-3 text-destructive" />}
+              {varianceForecast.trend === "down" && <ArrowDownRight className="h-3 w-3 text-success" />}
+            </div>
+          </div>
+          <div>
+            <div className="micro text-muted-foreground">vs prior period</div>
+            <div
+              className={`font-display text-display-md tabular mt-1 ${
+                varianceCompare.vsPriorPct >= 0 ? "text-destructive" : "text-success"
+              }`}
+            >
+              {varianceCompare.vsPriorPct >= 0 ? "+" : ""}
+              {varianceCompare.vsPriorPct.toFixed(1)}%
+            </div>
+          </div>
+          <div>
+            <div className="micro text-muted-foreground">vs same period LY</div>
+            <div className="font-display text-display-md tabular mt-1">
+              {varianceCompare.vsYoyPct >= 0 ? "+" : ""}
+              {varianceCompare.vsYoyPct.toFixed(1)}%
+            </div>
+          </div>
+        </div>
+        <div className="text-xs text-muted-foreground italic max-w-xs">
+          For variance, lower is better. Down trend = tighter operations.
+        </div>
+      </section>
 
       <section className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
         <Kpi
@@ -124,7 +185,7 @@ export default function FoodCostDashboard({ params }: { params: { slug: string }
           <div>
             <h2 className="font-display text-display-md">Variance trend</h2>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Avg daily variance % between approved counts, last 30 days
+              Avg daily variance %, {rangeLabel(range).toLowerCase()}
             </p>
           </div>
           <div className="text-xs text-muted-foreground">
@@ -136,7 +197,10 @@ export default function FoodCostDashboard({ params }: { params: { slug: string }
         </div>
         <div style={{ color: ACCENT }}>
           <LineChart
-            data={variance.map((v) => ({ label: v.date.slice(5), value: v.variancePct }))}
+            data={variance.map((v) => ({
+              label: range === "12mo" ? v.date.slice(0, 7) : v.date.slice(5),
+              value: v.variancePct,
+            }))}
             color={ACCENT}
           />
         </div>

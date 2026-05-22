@@ -61,6 +61,50 @@ const AVG_CHECK_BASE: Record<RestaurantSlug, number> = {
 
 const DAY_OF_WEEK_FACTOR = [0.72, 0.78, 0.85, 0.95, 1.18, 1.42, 1.32]; // Sun-Sat
 
+// Seasonal multiplier per month (S Florida — strong winter season, soft summer)
+const MONTH_FACTOR_MIAMI_FTL = [
+  1.20, // Jan
+  1.22, // Feb
+  1.28, // Mar — peak season
+  1.18, // Apr
+  1.02, // May
+  0.86, // Jun
+  0.78, // Jul
+  0.75, // Aug
+  0.82, // Sep
+  0.95, // Oct
+  1.10, // Nov
+  1.30, // Dec
+];
+
+// Sports bar — less seasonal, sports-schedule driven (NFL Sep-Feb, March Madness, NBA playoffs)
+const MONTH_FACTOR_DS = [
+  1.18, // Jan — playoffs + Super Bowl
+  1.32, // Feb — Super Bowl + start of March Madness
+  1.28, // Mar — March Madness
+  1.10, // Apr
+  0.92, // May
+  0.85, // Jun
+  0.82, // Jul
+  0.94, // Aug — preseason NFL
+  1.20, // Sep — NFL starts
+  1.18, // Oct
+  1.22, // Nov
+  1.22, // Dec
+];
+
+function monthFactor(slug: RestaurantSlug, month: number): number {
+  if (slug === "ds-sports") return MONTH_FACTOR_DS[month];
+  return MONTH_FACTOR_MIAMI_FTL[month];
+}
+
+// Year-over-year base growth (we're growing as a business)
+function yoyGrowthFactor(slug: RestaurantSlug, daysAgo: number): number {
+  // 12% YoY growth, applied linearly day-by-day
+  const growthPerDay = 0.12 / 365;
+  return 1 + growthPerDay * (365 - daysAgo);
+}
+
 export function dailySalesFor(slug: RestaurantSlug, days = 30): DailySales[] {
   const base = DAILY_BASE[slug];
   const checkBase = AVG_CHECK_BASE[slug];
@@ -71,9 +115,12 @@ export function dailySalesFor(slug: RestaurantSlug, days = 30): DailySales[] {
     const d = new Date(end);
     d.setDate(d.getDate() - i);
     const dow = d.getDay();
+    const month = d.getMonth();
     const seed = hash(`${slug}:${d.toISOString().slice(0, 10)}`);
     const noise = 0.85 + rnd(seed) * 0.3; // ±15%
-    const gross = Math.round(base * DAY_OF_WEEK_FACTOR[dow] * noise);
+    const seasonal = monthFactor(slug, month);
+    const growth = yoyGrowthFactor(slug, i);
+    const gross = Math.round(base * DAY_OF_WEEK_FACTOR[dow] * seasonal * growth * noise);
     const compsRate = 0.015 + rnd(seed + 1) * 0.025;
     const voidsRate = 0.008 + rnd(seed + 2) * 0.012;
     const avgCheck = Math.round(checkBase * (0.95 + rnd(seed + 3) * 0.1));
@@ -336,4 +383,178 @@ export function varianceTrendFor(slug: RestaurantSlug, days = 30): ItemVarianceT
     });
   }
   return out;
+}
+
+/* ─────────── Per-item count history ─────────── */
+
+export type CountPoint = {
+  date: string;
+  quantity: number;
+  par: number;
+  daysSinceLast: number;
+};
+
+/**
+ * Mock per-item count history. Generates a count entry every ~2-7 days
+ * with realistic depletion + restocking pattern.
+ */
+export function itemHistoryFor(
+  slug: RestaurantSlug,
+  itemName: string,
+  par: number,
+  days = 180,
+): CountPoint[] {
+  const out: CountPoint[] = [];
+  const end = new Date("2026-05-21T00:00:00");
+  const baseSeed = hash(`${slug}:${itemName}`);
+  let currentDay = days;
+  let lastQty = par * (0.9 + rnd(baseSeed) * 0.2);
+
+  while (currentDay > 0) {
+    // Cycle: count happens every 2-7 days
+    const cycleSeed = hash(`${slug}:${itemName}:${currentDay}`);
+    const stride = 2 + Math.floor(rnd(cycleSeed) * 5);
+    currentDay -= stride;
+    if (currentDay < 0) break;
+
+    const d = new Date(end);
+    d.setDate(d.getDate() - currentDay);
+    const month = d.getMonth();
+
+    // Depletion rate scales with seasonal demand
+    const seasonal = monthFactor(slug, month);
+    const usage = par * (0.18 + rnd(cycleSeed + 1) * 0.18) * seasonal * stride / 4;
+    let next = lastQty - usage;
+    // 30% chance of a restock
+    if (next < par * 0.6 || rnd(cycleSeed + 2) < 0.3) {
+      next = par * (0.95 + rnd(cycleSeed + 3) * 0.25); // restocked
+    }
+    next = Math.max(0, +next.toFixed(1));
+    out.push({
+      date: d.toISOString().slice(0, 10),
+      quantity: next,
+      par,
+      daysSinceLast: stride,
+    });
+    lastQty = next;
+  }
+  return out;
+}
+
+/* ─────────── Forecasting ─────────── */
+
+export type Forecast = {
+  next7d: number;
+  next30d: number;
+  trend: "up" | "down" | "flat";
+  weeklyAvg: number;
+  monthlyAvg: number;
+};
+
+/**
+ * Simple linear projection from the trailing series.
+ * Returns the projected total for the next 7d and 30d.
+ */
+export function forecastFromSeries(values: number[]): Forecast {
+  if (values.length < 14) {
+    const avg = values.reduce((s, v) => s + v, 0) / Math.max(1, values.length);
+    return {
+      next7d: avg * 7,
+      next30d: avg * 30,
+      trend: "flat",
+      weeklyAvg: avg * 7,
+      monthlyAvg: avg * 30,
+    };
+  }
+  // Linear regression on the last 60 days (or all available)
+  const window = values.slice(-Math.min(60, values.length));
+  const n = window.length;
+  const xs = Array.from({ length: n }, (_, i) => i);
+  const ys = window;
+  const sumX = xs.reduce((s, x) => s + x, 0);
+  const sumY = ys.reduce((s, y) => s + y, 0);
+  const sumXY = xs.reduce((s, x, i) => s + x * ys[i], 0);
+  const sumX2 = xs.reduce((s, x) => s + x * x, 0);
+  const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+  const intercept = (sumY - slope * sumX) / n;
+
+  let next7Total = 0;
+  let next30Total = 0;
+  for (let k = 1; k <= 30; k++) {
+    const projected = Math.max(0, intercept + slope * (n - 1 + k));
+    if (k <= 7) next7Total += projected;
+    next30Total += projected;
+  }
+
+  const weeklyAvg = window.slice(-7).reduce((s, v) => s + v, 0);
+  const monthlyAvg = window.slice(-30).reduce((s, v) => s + v, 0);
+  const trend: "up" | "down" | "flat" =
+    Math.abs(slope) < (intercept * 0.001) ? "flat" : slope > 0 ? "up" : "down";
+
+  return {
+    next7d: Math.round(next7Total),
+    next30d: Math.round(next30Total),
+    trend,
+    weeklyAvg: Math.round(weeklyAvg),
+    monthlyAvg: Math.round(monthlyAvg),
+  };
+}
+
+/* ─────────── Range helpers ─────────── */
+
+export type TimeRange = "7d" | "30d" | "90d" | "12mo";
+
+export function rangeDays(range: TimeRange): number {
+  return range === "7d" ? 7 : range === "30d" ? 30 : range === "90d" ? 90 : 365;
+}
+
+export function rangeLabel(range: TimeRange): string {
+  return range === "7d" ? "Last 7 days" : range === "30d" ? "Last 30 days" : range === "90d" ? "Last 90 days" : "Last 12 months";
+}
+
+/**
+ * Build period-over-period comparisons: current period total vs same prior period
+ * and vs same period one year ago.
+ */
+export type PeriodComparison = {
+  current: number;
+  priorPeriod: number;
+  yoy: number;
+  vsPriorPct: number;
+  vsYoyPct: number;
+};
+
+export function comparePeriods(
+  series: Array<{ date: string; value: number }>,
+  range: TimeRange,
+): PeriodComparison {
+  const days = rangeDays(range);
+  if (series.length < days) {
+    const total = series.reduce((s, x) => s + x.value, 0);
+    return {
+      current: total,
+      priorPeriod: 0,
+      yoy: 0,
+      vsPriorPct: 0,
+      vsYoyPct: 0,
+    };
+  }
+  const current = series.slice(-days);
+  const prior = series.slice(-days * 2, -days);
+  const yoyStart = series.length - 365 - days / 2;
+  const yoy =
+    yoyStart > 0
+      ? series.slice(yoyStart, yoyStart + days)
+      : [];
+  const sum = (arr: Array<{ value: number }>) => arr.reduce((s, x) => s + x.value, 0);
+  const cur = sum(current);
+  const pri = sum(prior);
+  const yo = sum(yoy);
+  return {
+    current: cur,
+    priorPeriod: pri,
+    yoy: yo,
+    vsPriorPct: pri > 0 ? ((cur - pri) / pri) * 100 : 0,
+    vsYoyPct: yo > 0 ? ((cur - yo) / yo) * 100 : 0,
+  };
 }
