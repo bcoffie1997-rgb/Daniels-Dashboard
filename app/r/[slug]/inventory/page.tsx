@@ -1,10 +1,11 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { SiteHeader } from "@/components/site-header";
-import { getRestaurant } from "@/lib/restaurants";
+import { getRestaurant, type RestaurantSlug } from "@/lib/restaurants";
 import { getSeed, belowParItems } from "@/lib/seed";
+import { lastCountedFor, relativeTime } from "@/lib/seed/sessions";
 import { Badge } from "@/components/ui/badge";
-import { ChevronRight, AlertTriangle, ShieldCheck } from "lucide-react";
+import { ChevronRight, AlertTriangle, ShieldCheck, Clock } from "lucide-react";
 
 export default function InventoryPage({ params }: { params: { slug: string } }) {
   const restaurant = getRestaurant(params.slug);
@@ -60,10 +61,25 @@ export default function InventoryPage({ params }: { params: { slug: string } }) 
         </div>
 
         <div className="space-y-10">
-          {seed.stations.map((s) => (
+          {seed.stations.map((s) => {
+            const last = lastCountedFor(restaurant.slug as RestaurantSlug, s.name);
+            return (
             <section key={s.name} id={s.name} className="scroll-mt-32">
               <div className="flex items-end justify-between mb-3 flex-wrap gap-2">
-                <h2 className="font-display text-display-md">{s.name}</h2>
+                <div>
+                  <h2 className="font-display text-display-md">{s.name}</h2>
+                  {last ? (
+                    <div className="text-xs text-muted-foreground mt-1 inline-flex items-center gap-1.5">
+                      <Clock className="h-3 w-3" />
+                      Last counted {relativeTime(last.ts)} by {last.by}
+                    </div>
+                  ) : (
+                    <div className="text-xs text-warning mt-1 inline-flex items-center gap-1.5">
+                      <Clock className="h-3 w-3" />
+                      Never counted
+                    </div>
+                  )}
+                </div>
                 <span className="micro text-muted-foreground">{s.items.length} items</span>
               </div>
               <div className="rounded-lg border border-border bg-card overflow-hidden">
@@ -127,7 +143,8 @@ export default function InventoryPage({ params }: { params: { slug: string } }) 
                 </table>
               </div>
             </section>
-          ))}
+            );
+          })}
         </div>
       </main>
     </div>

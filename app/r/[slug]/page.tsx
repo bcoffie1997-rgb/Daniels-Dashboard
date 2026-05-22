@@ -96,12 +96,14 @@ export default function RestaurantDashboard({ params }: { params: { slug: string
         </section>
 
         <section className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-10">
-          <NavCard
-            href={`/r/${restaurant.slug}/approvals`}
-            caption="Approvals"
-            title={kpi.pendingApproval > 0 ? `${kpi.pendingApproval} pending` : "All clear"}
-            sub="Manager queue — review and approve / reject counts"
-          />
+          <div data-show-when="manager">
+            <NavCard
+              href={`/r/${restaurant.slug}/approvals`}
+              caption="Approvals"
+              title={kpi.pendingApproval > 0 ? `${kpi.pendingApproval} pending` : "All clear"}
+              sub="Manager queue — review and approve / reject counts"
+            />
+          </div>
           <NavCard
             href={`/r/${restaurant.slug}/inventory`}
             caption="Inventory"
@@ -109,41 +111,55 @@ export default function RestaurantDashboard({ params }: { params: { slug: string
             sub={`${kpi.itemsTracked} items · ${kpi.stationsActive} stations`}
           />
           <NavCard
-            href={`/r/${restaurant.slug}/reorder`}
-            caption="Reorder"
-            title="Below par"
-            sub="Items short of par with critical / watch tiers"
+            href={`/r/${restaurant.slug}/sessions`}
+            caption="Sessions"
+            title="History"
+            sub="All counts — pending, approved, rejected, in progress"
           />
-          <NavCard
-            href={`/r/${restaurant.slug}/recipes`}
-            caption="Recipes"
-            title="Menu → BOM"
-            sub="Theoretical usage source for AvT"
-          />
+          <div data-show-when="manager">
+            <NavCard
+              href={`/r/${restaurant.slug}/reorder`}
+              caption="Reorder"
+              title="Below par"
+              sub="Items short of par with critical / watch tiers"
+            />
+          </div>
+          <div data-show-when="admin">
+            <NavCard
+              href={`/r/${restaurant.slug}/recipes`}
+              caption="Recipes"
+              title="Menu → BOM"
+              sub="Theoretical usage source for AvT"
+            />
+          </div>
           <NavCard
             href={`/r/${restaurant.slug}/menu`}
             caption="Menu"
             title={`${totalMenuItems} dishes`}
             sub="Full published menu by section"
           />
-          <NavCard
-            href={`/r/${restaurant.slug}/avt`}
-            caption="AvT"
-            title="Actual vs Theoretical"
-            sub="v2 preview · awaiting Toast sales feed"
-            muted
-          />
-          <NavCard
-            href={`/r/${restaurant.slug}/integrations`}
-            caption="Integrations"
-            title="Connect"
-            sub="Toast POS · invoice OCR · alerts"
-            muted
-          />
+          <div data-show-when="manager">
+            <NavCard
+              href={`/r/${restaurant.slug}/avt`}
+              caption="AvT"
+              title="Actual vs Theoretical"
+              sub="v2 preview · awaiting Toast sales feed"
+              muted
+            />
+          </div>
+          <div data-show-when="admin">
+            <NavCard
+              href={`/r/${restaurant.slug}/integrations`}
+              caption="Integrations"
+              title="Connect"
+              sub="Toast POS · invoice OCR · alerts"
+              muted
+            />
+          </div>
         </section>
 
         {kpi.topVariance && (
-          <section className="mb-10">
+          <section className="mb-10" data-show-when="manager">
             <h2 className="font-display text-display-md mb-4">Where to look first</h2>
             <div className="rounded-lg border border-destructive/40 bg-destructive-bg p-5">
               <div className="flex items-start gap-4">
@@ -181,7 +197,7 @@ export default function RestaurantDashboard({ params }: { params: { slug: string
           </div>
         </section>
 
-        <section className="mb-10">
+        <section className="mb-10" data-show-when="admin">
           <div className="flex items-end justify-between mb-3">
             <h2 className="font-display text-display-md">Admin</h2>
             <span className="micro text-muted-foreground">visible to admins only</span>
@@ -196,6 +212,19 @@ export default function RestaurantDashboard({ params }: { params: { slug: string
                   <div className="micro text-accent">Audit log</div>
                   <div className="text-sm font-medium mt-1.5">Changelog</div>
                   <div className="text-xs text-muted-foreground mt-0.5">Every state change, in order</div>
+                </div>
+                <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-accent transition-colors shrink-0" />
+              </div>
+            </Link>
+            <Link
+              href={`/r/${restaurant.slug}/settings`}
+              className="group rounded-lg border border-border bg-card p-4 hover:border-accent/60 transition-colors"
+            >
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <div className="micro text-accent">Configuration</div>
+                  <div className="text-sm font-medium mt-1.5">Settings</div>
+                  <div className="text-xs text-muted-foreground mt-0.5">Variance thresholds · notifications · cadence</div>
                 </div>
                 <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-accent transition-colors shrink-0" />
               </div>

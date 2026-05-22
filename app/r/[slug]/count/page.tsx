@@ -1,10 +1,11 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { SiteHeader } from "@/components/site-header";
-import { getRestaurant } from "@/lib/restaurants";
+import { getRestaurant, type RestaurantSlug } from "@/lib/restaurants";
 import { getSeed } from "@/lib/seed";
+import { lastCountedFor, relativeTime } from "@/lib/seed/sessions";
 import { Badge } from "@/components/ui/badge";
-import { ChevronRight, ClipboardList, ShieldCheck } from "lucide-react";
+import { ChevronRight, ClipboardList, ShieldCheck, Clock } from "lucide-react";
 
 export default function CountStationPicker({ params }: { params: { slug: string } }) {
   const restaurant = getRestaurant(params.slug);
@@ -39,6 +40,12 @@ export default function CountStationPicker({ params }: { params: { slug: string 
           {seed.stations.map((s) => {
             const dualCount = s.items.filter((it) => it.requiresDualCount).length;
             const total = s.items.length;
+            const last = lastCountedFor(restaurant.slug as RestaurantSlug, s.name);
+            const isStale = last == null || (() => {
+              const ts = new Date(last.ts.replace(" ", "T")).getTime();
+              const now = new Date("2026-05-21T19:00:00").getTime();
+              return now - ts > 24 * 3600 * 1000;
+            })();
             return (
               <li key={s.name}>
                 <Link
@@ -63,9 +70,23 @@ export default function CountStationPicker({ params }: { params: { slug: string 
                     </div>
                     <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-accent transition-colors shrink-0" />
                   </div>
-                  <div className="mt-4 flex items-center gap-2 text-xs text-muted-foreground">
+                  <div className="mt-4 flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
                     <Badge variant="outline">~{Math.max(3, Math.round(total * 0.6))} min</Badge>
-                    <span>Last counted —</span>
+                    {last ? (
+                      <span
+                        className={`inline-flex items-center gap-1 ${
+                          isStale ? "text-warning" : ""
+                        }`}
+                      >
+                        <Clock className="h-3 w-3" />
+                        Last counted {relativeTime(last.ts)} by {last.by}
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 text-warning">
+                        <Clock className="h-3 w-3" />
+                        Never counted
+                      </span>
+                    )}
                   </div>
                 </Link>
               </li>

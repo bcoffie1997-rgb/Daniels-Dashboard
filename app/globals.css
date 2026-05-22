@@ -59,6 +59,22 @@
 }
 
 @layer utilities {
+  /* Role-aware visibility — RoleToggle writes data-role on <html>.
+     Sections marked with data-show-when only render for that role. */
+  html[data-role="counter"] [data-show-when="admin"],
+  html[data-role="counter"] [data-show-when="manager"] {
+    display: none !important;
+  }
+  html[data-role="manager"] [data-show-when="admin"] {
+    display: none !important;
+  }
+  html[data-role="admin"] [data-show-when="counter-only"] {
+    display: none !important;
+  }
+  html[data-role="manager"] [data-show-when="counter-only"] {
+    display: none !important;
+  }
+
   .tabular {
     font-variant-numeric: tabular-nums;
   }
