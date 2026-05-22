@@ -4,6 +4,7 @@ import { SiteHeader } from "@/components/site-header";
 import { getRestaurant, type RestaurantSlug } from "@/lib/restaurants";
 import { sessionsFor, type MockSession, type SessionStatus, relativeTime } from "@/lib/seed/sessions";
 import { Badge } from "@/components/ui/badge";
+import { EmptyState } from "@/components/empty-state";
 import {
   ChevronRight,
   ClipboardList,
@@ -103,9 +104,32 @@ export default function SessionsPage({
         </div>
 
         {sorted.length === 0 ? (
-          <div className="rounded-lg border border-border bg-card p-8 text-center text-muted-foreground">
-            No sessions match this filter yet.
-          </div>
+          <EmptyState
+            icon={ClipboardList}
+            title={activeFilter === "all" ? "No sessions yet" : "Nothing matches this filter"}
+            body={
+              activeFilter === "all"
+                ? "Once a counter submits a count, you'll see it here."
+                : "Try a different status — or clear the filter to see everything."
+            }
+            action={
+              activeFilter !== "all" ? (
+                <Link
+                  href={`/r/${restaurant.slug}/sessions`}
+                  className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-2 text-sm hover:border-accent/60"
+                >
+                  Show all
+                </Link>
+              ) : (
+                <Link
+                  href={`/r/${restaurant.slug}/count`}
+                  className="inline-flex items-center gap-1.5 rounded-md bg-accent text-accent-foreground px-3 py-2 text-sm font-medium hover:bg-accent/90"
+                >
+                  Start a count
+                </Link>
+              )
+            }
+          />
         ) : (
           <ul className="space-y-3">
             {sorted.map((s) => (
@@ -140,11 +164,16 @@ function SessionRow({
   const meta = statusMeta[session.status];
   const StatusIcon = meta.icon;
 
-  // Destination: in-progress → count flow; otherwise → approval detail (for review)
+  // Destination:
+  // - in-progress → resume in the count flow
+  // - submitted (pending) → manager approval queue detail (decision needed)
+  // - approved / rejected → read-only session detail
   const href =
     session.status === "in_progress"
       ? `/r/${restaurantSlug}/count/${encodeURIComponent(session.stationName)}`
-      : `/r/${restaurantSlug}/approvals/${session.id}`;
+      : session.status === "submitted"
+      ? `/r/${restaurantSlug}/approvals/${session.id}`
+      : `/r/${restaurantSlug}/sessions/${session.id}`;
 
   return (
     <li>

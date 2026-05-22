@@ -5,6 +5,7 @@ import { getRestaurant } from "@/lib/restaurants";
 import { getSeed } from "@/lib/seed";
 import { recipesFor } from "@/lib/seed/recipes";
 import { Badge } from "@/components/ui/badge";
+import { EmptyState } from "@/components/empty-state";
 import { ChevronRight, ChefHat } from "lucide-react";
 
 export default function RecipesPage({ params }: { params: { slug: string } }) {
@@ -53,9 +54,11 @@ export default function RecipesPage({ params }: { params: { slug: string } }) {
             <span className="micro text-muted-foreground">{recipes.length} recipes</span>
           </div>
           {recipes.length === 0 ? (
-            <div className="rounded-lg border border-border bg-card p-6 text-muted-foreground">
-              No recipes yet for this restaurant.
-            </div>
+            <EmptyState
+              icon={ChefHat}
+              title="No recipes yet"
+              body="Recipes map menu dishes to inventory items. Once defined, sales × recipes feeds theoretical usage in AvT."
+            />
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {recipes.map((r) => (

@@ -87,11 +87,19 @@ export default function InventoryPage({ params }: { params: { slug: string } }) 
                   <thead className="bg-muted/30">
                     <tr className="text-left">
                       <th className="micro text-muted-foreground px-4 py-3 font-medium">Item</th>
-                      <th className="micro text-muted-foreground px-4 py-3 font-medium hidden md:table-cell">Category</th>
-                      <th className="micro text-muted-foreground px-4 py-3 font-medium w-20">Unit</th>
-                      <th className="micro text-muted-foreground px-4 py-3 font-medium w-24 text-right">Last count</th>
-                      <th className="micro text-muted-foreground px-4 py-3 font-medium w-20 text-right">Par</th>
-                      <th className="micro text-muted-foreground px-4 py-3 font-medium w-28 text-right">Status</th>
+                      <th className="micro text-muted-foreground px-4 py-3 font-medium hidden lg:table-cell">Category</th>
+                      <th className="micro text-muted-foreground px-4 py-3 font-medium w-16 hidden sm:table-cell">Unit</th>
+                      <th className="micro text-muted-foreground px-3 py-3 font-medium w-20 sm:w-24 text-right">
+                        <span className="sm:hidden">Last</span>
+                        <span className="hidden sm:inline">Last count</span>
+                      </th>
+                      <th className="micro text-muted-foreground px-3 py-3 font-medium w-16 sm:w-20 text-right hidden sm:table-cell">
+                        Par
+                      </th>
+                      <th className="micro text-muted-foreground px-3 py-3 font-medium w-12 sm:w-28 text-right">
+                        <span className="sm:hidden sr-only">Status</span>
+                        <span className="hidden sm:inline">Status</span>
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
@@ -102,7 +110,7 @@ export default function InventoryPage({ params }: { params: { slug: string } }) 
                         <tr key={i} className="hover:bg-muted/30">
                           <td className="px-4 py-2.5">
                             <div className="flex items-center gap-2 flex-wrap">
-                              <span>{it.name}</span>
+                              <span className="font-medium sm:font-normal">{it.name}</span>
                               {it.requiresDualCount && (
                                 <span
                                   className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded border border-accent/40 bg-accent/10 text-accent font-medium"
@@ -113,27 +121,41 @@ export default function InventoryPage({ params }: { params: { slug: string } }) 
                                 </span>
                               )}
                             </div>
+                            {/* Mobile-only inline meta */}
+                            <div className="sm:hidden text-xs text-muted-foreground mt-1 flex flex-wrap gap-x-3">
+                              <span>Unit: <span className="text-foreground">{it.unit}</span></span>
+                              {it.par != null && (
+                                <span>Par: <span className="text-foreground tabular">{it.par}</span></span>
+                              )}
+                              {it.category && <span>{it.category}</span>}
+                            </div>
                             {it.notes && <div className="text-xs text-muted-foreground mt-0.5">{it.notes}</div>}
                           </td>
-                          <td className="px-4 py-2.5 hidden md:table-cell">
+                          <td className="px-4 py-2.5 hidden lg:table-cell">
                             {it.category ? (
                               <Badge variant="outline">{it.category}</Badge>
                             ) : (
                               <span className="text-muted-foreground text-xs">—</span>
                             )}
                           </td>
-                          <td className="px-4 py-2.5 text-muted-foreground">{it.unit}</td>
-                          <td className="px-4 py-2.5 text-right tabular">
+                          <td className="px-4 py-2.5 text-muted-foreground hidden sm:table-cell">{it.unit}</td>
+                          <td className="px-3 py-2.5 text-right tabular">
                             {it.lastCounted ?? <span className="text-muted-foreground">—</span>}
                           </td>
-                          <td className="px-4 py-2.5 text-right tabular">{it.par ?? "—"}</td>
-                          <td className="px-4 py-2.5 text-right">
+                          <td className="px-3 py-2.5 text-right tabular hidden sm:table-cell">{it.par ?? "—"}</td>
+                          <td className="px-3 py-2.5 text-right">
                             {wellBelow ? (
-                              <Badge variant="destructive">Reorder</Badge>
+                              <>
+                                <Badge variant="destructive" className="hidden sm:inline-flex">Reorder</Badge>
+                                <AlertTriangle className="h-4 w-4 text-destructive sm:hidden inline" aria-label="Reorder" />
+                              </>
                             ) : belowPar ? (
-                              <Badge variant="warning">Below par</Badge>
+                              <>
+                                <Badge variant="warning" className="hidden sm:inline-flex">Below par</Badge>
+                                <AlertTriangle className="h-4 w-4 text-warning sm:hidden inline" aria-label="Below par" />
+                              </>
                             ) : (
-                              <span className="text-muted-foreground text-xs">OK</span>
+                              <span className="text-muted-foreground text-xs hidden sm:inline">OK</span>
                             )}
                           </td>
                         </tr>

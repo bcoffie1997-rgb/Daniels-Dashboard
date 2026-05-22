@@ -4,7 +4,8 @@ import { SiteHeader } from "@/components/site-header";
 import { getRestaurant } from "@/lib/restaurants";
 import { getSeed, belowParItems } from "@/lib/seed";
 import { Badge } from "@/components/ui/badge";
-import { ChevronRight, AlertTriangle, Send } from "lucide-react";
+import { EmptyState } from "@/components/empty-state";
+import { ChevronRight, AlertTriangle, Send, CheckCircle2 } from "lucide-react";
 
 export default function ReorderPage({ params }: { params: { slug: string } }) {
   const restaurant = getRestaurant(params.slug);
@@ -62,10 +63,12 @@ export default function ReorderPage({ params }: { params: { slug: string } }) {
         </div>
 
         {items.length === 0 ? (
-          <div className="rounded-lg border border-border bg-card p-8 text-center">
-            <div className="text-success font-display text-display-md">All stations at par.</div>
-            <p className="text-muted-foreground mt-2">Nothing to reorder right now.</p>
-          </div>
+          <EmptyState
+            icon={CheckCircle2}
+            tone="success"
+            title="All stations at par"
+            body="Nothing to reorder right now. We'll flag items the moment the next approved count drops below par."
+          />
         ) : (
           <div className="rounded-lg border border-border bg-card overflow-hidden">
             <table className="w-full text-sm">

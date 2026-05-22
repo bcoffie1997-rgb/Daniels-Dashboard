@@ -4,6 +4,7 @@ import { SiteHeader } from "@/components/site-header";
 import { getRestaurant, type RestaurantSlug } from "@/lib/restaurants";
 import { pendingSessionsFor } from "@/lib/seed/sessions";
 import { Badge } from "@/components/ui/badge";
+import { EmptyState } from "@/components/empty-state";
 import { ChevronRight, ClipboardCheck, AlertTriangle, ShieldCheck, CheckCircle2 } from "lucide-react";
 
 export default function ApprovalsPage({ params }: { params: { slug: string } }) {
@@ -39,13 +40,20 @@ export default function ApprovalsPage({ params }: { params: { slug: string } }) 
         </div>
 
         {pending.length === 0 ? (
-          <div className="rounded-lg border border-success/40 bg-success/10 p-8 text-center">
-            <CheckCircle2 className="h-8 w-8 text-success mx-auto" />
-            <div className="font-display text-display-md mt-3">All clear</div>
-            <p className="text-muted-foreground text-sm mt-1.5">
-              No pending count sessions. Counts will appear here when counters submit.
-            </p>
-          </div>
+          <EmptyState
+            icon={CheckCircle2}
+            tone="success"
+            title="All clear"
+            body="No pending count sessions. Counts will appear here when counters submit."
+            action={
+              <Link
+                href={`/r/${restaurant.slug}/sessions?status=approved`}
+                className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-2 text-sm hover:border-accent/60"
+              >
+                View approved history
+              </Link>
+            }
+          />
         ) : (
           <ul className="space-y-3">
             {pending.map((s) => {
