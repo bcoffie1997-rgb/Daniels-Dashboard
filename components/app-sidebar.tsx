@@ -69,9 +69,11 @@ export function AppSidebar({ slug }: { slug: string }) {
       label: "Dashboards",
       links: [
         { href: `${base}`, label: "Operations", Icon: Activity, role: "all" },
+        { href: `${base}/trends`, label: "Trends & insights", Icon: TrendingUp, role: "manager", accent: true },
         { href: `${base}/sales`, label: "Sales & Revenue", Icon: TrendingUp, role: "manager" },
         { href: `${base}/food-cost`, label: "Inventory & Food Cost", Icon: Coins, role: "manager" },
         { href: `${base}/labor`, label: "Labor", Icon: Users, role: "manager" },
+        { href: `${base}/avt`, label: "AvT (waste & shrink)", Icon: Coins, role: "manager" },
       ],
     },
     {

@@ -1,7 +1,17 @@
 import Link from "next/link";
-import { RESTAURANTS } from "@/lib/restaurants";
+import { RESTAURANTS, type RestaurantSlug } from "@/lib/restaurants";
 import { getKpiFor } from "@/lib/mock-data";
 import { sessionsFor, relativeTime } from "@/lib/seed/sessions";
+import {
+  dailySalesFor,
+  varianceTrendFor,
+  forecastFromSeries,
+  comparePeriods,
+  rangeDays,
+  rangeLabel,
+} from "@/lib/seed/analytics";
+import { TimeRangeSelector, parseRange } from "@/components/time-range";
+import { LineChart, Sparkline } from "@/components/charts";
 import { Badge } from "@/components/ui/badge";
 import {
   ChevronRight,
@@ -11,16 +21,43 @@ import {
   TrendingDown,
   ShieldCheck,
   ArrowUpRight,
+  ArrowDownRight,
   Clock,
   Activity,
+  Sparkles,
+  DollarSign,
 } from "lucide-react";
 
-export default function GroupDashboard() {
-  const locations = RESTAURANTS.map((r) => ({
-    restaurant: r,
-    kpi: getKpiFor(r.slug),
-    sessions: sessionsFor(r.slug),
-  }));
+export default function GroupDashboard({
+  searchParams,
+}: {
+  searchParams: { range?: string };
+}) {
+  const range = parseRange(searchParams.range);
+  const days = rangeDays(range);
+
+  const locations = RESTAURANTS.map((r) => {
+    const allSales = dailySalesFor(r.slug, 365);
+    const salesSeries = allSales.map((d) => ({ date: d.date, value: d.gross }));
+    const compare = comparePeriods(salesSeries, range);
+    const forecast = forecastFromSeries(allSales.slice(-90).map((d) => d.gross));
+    const variance = varianceTrendFor(r.slug, 365);
+    const last30Var = variance.slice(-30).reduce((s, v) => s + v.variancePct, 0) / 30;
+    const prior30Var =
+      variance.slice(-60, -30).reduce((s, v) => s + v.variancePct, 0) / 30;
+    return {
+      restaurant: r,
+      kpi: getKpiFor(r.slug),
+      sessions: sessionsFor(r.slug),
+      allSales,
+      salesSeries: allSales.slice(-days).map((d) => d.gross),
+      sales: compare,
+      forecast,
+      varianceTrend: variance.slice(-days),
+      varianceLast30: last30Var,
+      variancePrior30: prior30Var,
+    };
+  });
 
   const groupTotals = {
     items: locations.reduce((s, l) => s + l.kpi.itemsTracked, 0),
@@ -29,7 +66,19 @@ export default function GroupDashboard() {
     sessionsThisWeek: locations.reduce((s, l) => s + l.kpi.sessionsThisWeek, 0),
     avgVariance:
       locations.reduce((s, l) => s + l.kpi.avgVariancePct, 0) / locations.length,
+    grossCurrent: locations.reduce((s, l) => s + l.sales.current, 0),
+    grossPrior: locations.reduce((s, l) => s + l.sales.priorPeriod, 0),
+    grossYoy: locations.reduce((s, l) => s + l.sales.yoy, 0),
+    forecastNext30d: locations.reduce((s, l) => s + l.forecast.next30d, 0),
   };
+  const grossVsPrior =
+    groupTotals.grossPrior > 0
+      ? ((groupTotals.grossCurrent - groupTotals.grossPrior) / groupTotals.grossPrior) * 100
+      : 0;
+  const grossVsYoy =
+    groupTotals.grossYoy > 0
+      ? ((groupTotals.grossCurrent - groupTotals.grossYoy) / groupTotals.grossYoy) * 100
+      : 0;
 
   // Group-wide recent activity — last 8 sessions across all 3 restaurants
   const recentActivity = locations
@@ -64,20 +113,45 @@ export default function GroupDashboard() {
               Group overview
             </h1>
             <p className="text-muted-foreground mt-2 max-w-xl">
-              Live across Daniel's Miami, Daniel's Fort Lauderdale, and D's Sports Bar.
-              Click any location to drill in.
+              {rangeLabel(range)} across Daniel's Miami, Daniel's Fort Lauderdale, and
+              D's Sports Bar.
             </p>
           </div>
-          <div className="text-right">
-            <div className="micro text-muted-foreground">This week</div>
-            <div className="font-display text-2xl tabular mt-1">
-              {groupTotals.sessionsThisWeek} sessions
-            </div>
-          </div>
+          <TimeRangeSelector basePath="/admin" current={range} />
         </div>
 
-        {/* Group KPIs */}
-        <section className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+        {/* Group sales KPIs */}
+        <section className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+          <Kpi
+            label={`Group gross — ${rangeLabel(range).toLowerCase()}`}
+            value={`$${(groupTotals.grossCurrent / 1_000_000).toFixed(2)}M`}
+            vsPrior={grossVsPrior}
+            vsYoy={grossVsYoy}
+            icon={DollarSign}
+          />
+          <Kpi
+            label="Forecast next 30d"
+            value={`$${(groupTotals.forecastNext30d / 1_000_000).toFixed(2)}M`}
+            sub={`Linear projection`}
+            icon={Sparkles}
+          />
+          <Kpi
+            label="Sessions this week"
+            value={groupTotals.sessionsThisWeek}
+            sub={`${locations.length} locations`}
+            icon={ClipboardList}
+          />
+          <Kpi
+            label="Avg variance"
+            value={`${groupTotals.avgVariance.toFixed(1)}%`}
+            sub="rolling 7-day mean"
+            icon={TrendingDown}
+            tone={groupTotals.avgVariance > 4 ? "warning" : "success"}
+          />
+        </section>
+
+        {/* Secondary KPIs — operational */}
+        <section className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-8">
           <Kpi label="Items tracked" value={groupTotals.items} sub="across 3 locations" icon={Boxes} />
           <Kpi
             label="Pending approvals"
@@ -93,13 +167,90 @@ export default function GroupDashboard() {
             icon={AlertTriangle}
             tone={groupTotals.openVariances > 0 ? "destructive" : "success"}
           />
-          <Kpi
-            label="Avg variance"
-            value={`${groupTotals.avgVariance.toFixed(1)}%`}
-            sub="rolling 7-day mean"
-            icon={TrendingDown}
-            tone={groupTotals.avgVariance >= 4 ? "warning" : "success"}
-          />
+        </section>
+
+        {/* Per-location sales trend with sparklines */}
+        <section className="mb-10">
+          <div className="flex items-end justify-between mb-4">
+            <h2 className="font-display text-display-md">Sales trend by location</h2>
+            <span className="text-xs text-muted-foreground">{rangeLabel(range)} · vs prior period</span>
+          </div>
+          <div className="rounded-lg border border-border bg-card overflow-hidden">
+            <table className="w-full text-sm">
+              <thead className="bg-muted/30">
+                <tr className="text-left">
+                  <th className="micro text-muted-foreground px-4 py-3 font-medium">Location</th>
+                  <th className="micro text-muted-foreground px-4 py-3 font-medium">Trend</th>
+                  <th className="micro text-muted-foreground px-4 py-3 font-medium w-28 text-right">
+                    Period gross
+                  </th>
+                  <th className="micro text-muted-foreground px-4 py-3 font-medium w-24 text-right">
+                    vs prior
+                  </th>
+                  <th className="micro text-muted-foreground px-4 py-3 font-medium w-24 text-right">
+                    YoY
+                  </th>
+                  <th className="micro text-muted-foreground px-4 py-3 font-medium w-32 text-right">
+                    Forecast 30d
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {locations.map((l) => (
+                  <tr key={l.restaurant.slug} className="hover:bg-muted/30">
+                    <td className="px-4 py-3">
+                      <Link
+                        href={`/r/${l.restaurant.slug}/sales`}
+                        className="font-medium hover:text-accent inline-flex items-center gap-2"
+                      >
+                        <span
+                          className="h-2 w-2 rounded-full"
+                          style={{ backgroundColor: l.restaurant.accentHex }}
+                        />
+                        {l.restaurant.name}
+                      </Link>
+                    </td>
+                    <td className="px-4 py-3" style={{ color: l.restaurant.accentHex }}>
+                      <Sparkline
+                        values={l.salesSeries}
+                        width={160}
+                        height={30}
+                        color={l.restaurant.accentHex}
+                      />
+                    </td>
+                    <td className="px-4 py-3 text-right tabular">
+                      ${(l.sales.current / 1000).toFixed(0)}k
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <DeltaPill value={l.sales.vsPriorPct} />
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <DeltaPill value={l.sales.vsYoyPct} />
+                    </td>
+                    <td className="px-4 py-3 text-right tabular text-muted-foreground">
+                      ${(l.forecast.next30d / 1000).toFixed(0)}k
+                    </td>
+                  </tr>
+                ))}
+                <tr className="bg-muted/20 font-medium">
+                  <td className="px-4 py-3">Group total</td>
+                  <td className="px-4 py-3" />
+                  <td className="px-4 py-3 text-right tabular">
+                    ${(groupTotals.grossCurrent / 1000).toFixed(0)}k
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <DeltaPill value={grossVsPrior} />
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <DeltaPill value={grossVsYoy} />
+                  </td>
+                  <td className="px-4 py-3 text-right tabular text-muted-foreground">
+                    ${(groupTotals.forecastNext30d / 1000).toFixed(0)}k
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </section>
 
         {/* Locations */}
@@ -297,12 +448,16 @@ function Kpi({
   sub,
   icon: Icon,
   tone = "default",
+  vsPrior,
+  vsYoy,
 }: {
   label: string;
   value: string | number;
-  sub: string;
+  sub?: string;
   icon: any;
   tone?: "default" | "warning" | "destructive" | "success";
+  vsPrior?: number;
+  vsYoy?: number;
 }) {
   const toneCls = {
     default: "text-foreground",
@@ -317,8 +472,29 @@ function Kpi({
         <Icon className="h-4 w-4 text-muted-foreground" />
       </div>
       <div className={`font-display text-display-lg tabular mt-3 ${toneCls}`}>{value}</div>
-      <div className="text-xs text-muted-foreground mt-0.5">{sub}</div>
+      <div className="text-xs text-muted-foreground mt-1 flex items-center gap-3 flex-wrap">
+        {vsPrior != null && <DeltaPill value={vsPrior} label="vs prior" />}
+        {vsYoy != null && vsYoy !== 0 && <DeltaPill value={vsYoy} label="YoY" />}
+        {sub && vsPrior == null && <span>{sub}</span>}
+      </div>
     </div>
+  );
+}
+
+function DeltaPill({ value, label }: { value: number; label?: string }) {
+  const positive = value >= 0;
+  return (
+    <span
+      className={`inline-flex items-center gap-0.5 tabular ${
+        positive ? "text-success" : "text-destructive"
+      }`}
+      title={label ? `${label}: ${value.toFixed(1)}%` : `${value.toFixed(1)}%`}
+    >
+      {positive ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
+      {value >= 0 ? "+" : ""}
+      {value.toFixed(1)}%
+      {label && <span className="ml-0.5">{label}</span>}
+    </span>
   );
 }
 

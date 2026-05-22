@@ -45,6 +45,7 @@ function buildIndex(current?: Restaurant): Entry[] {
 
   const nav: Entry[] = [
     { id: "nav-ops", label: "Operations dashboard", detail: restaurant.shortName, href: base, group: "Navigation", Icon: LayoutDashboard },
+    { id: "nav-trends", label: "Trends & insights", detail: "Risers · fallers · forecasts · reorders", href: `${base}/trends`, group: "Navigation", Icon: LayoutDashboard },
     { id: "nav-sales", label: "Sales & Revenue", detail: "Daily sales · top items · servers", href: `${base}/sales`, group: "Navigation", Icon: LayoutDashboard },
     { id: "nav-foodcost", label: "Inventory & Food Cost", detail: "Variance · spend · vendors", href: `${base}/food-cost`, group: "Navigation", Icon: LayoutDashboard },
     { id: "nav-labor", label: "Labor", detail: "Labor % · prime cost · roles", href: `${base}/labor`, group: "Navigation", Icon: LayoutDashboard },
