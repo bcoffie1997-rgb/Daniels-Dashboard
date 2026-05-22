@@ -124,14 +124,6 @@ export default function RestaurantDashboard({ params }: { params: { slug: string
               sub="Items short of par with critical / watch tiers"
             />
           </div>
-          <div data-show-when="admin">
-            <NavCard
-              href={`/r/${restaurant.slug}/recipes`}
-              caption="Recipes"
-              title="Menu → BOM"
-              sub="Theoretical usage source for AvT"
-            />
-          </div>
           <NavCard
             href={`/r/${restaurant.slug}/menu`}
             caption="Menu"

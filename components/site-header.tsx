@@ -16,7 +16,6 @@ export function SiteHeader({ current }: { current?: Restaurant }) {
     { href: `${base}/sessions`, label: "Sessions", role: "all" },
     { href: `${base}/inventory`, label: "Inventory", role: "all" },
     { href: `${base}/reorder`, label: "Reorder", role: "manager" },
-    { href: `${base}/recipes`, label: "Recipes", role: "admin" },
     { href: `${base}/menu`, label: "Menu", role: "all" },
     { href: `${base}/avt`, label: "AvT", accent: true, role: "manager" },
     { href: `${base}/integrations`, label: "Integrations", accent: true, role: "admin" },
