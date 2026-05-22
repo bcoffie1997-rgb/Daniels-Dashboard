@@ -44,11 +44,14 @@ function buildIndex(current?: Restaurant): Entry[] {
   const base = `/r/${restaurant.slug}`;
 
   const nav: Entry[] = [
-    { id: "nav-dash", label: "Dashboard", detail: restaurant.shortName, href: base, group: "Navigation", Icon: LayoutDashboard },
+    { id: "nav-ops", label: "Operations dashboard", detail: restaurant.shortName, href: base, group: "Navigation", Icon: LayoutDashboard },
+    { id: "nav-sales", label: "Sales & Revenue", detail: "Daily sales · top items · servers", href: `${base}/sales`, group: "Navigation", Icon: LayoutDashboard },
+    { id: "nav-foodcost", label: "Inventory & Food Cost", detail: "Variance · spend · vendors", href: `${base}/food-cost`, group: "Navigation", Icon: LayoutDashboard },
+    { id: "nav-labor", label: "Labor", detail: "Labor % · prime cost · roles", href: `${base}/labor`, group: "Navigation", Icon: LayoutDashboard },
     { id: "nav-count", label: "Start a count", detail: "Pick a station", href: `${base}/count`, group: "Navigation", Icon: ClipboardList },
     { id: "nav-appr", label: "Approvals queue", detail: "Manager — pending counts", href: `${base}/approvals`, group: "Navigation", Icon: ClipboardCheck },
     { id: "nav-sess", label: "Sessions history", detail: "All count sessions", href: `${base}/sessions`, group: "Navigation", Icon: ClipboardList },
-    { id: "nav-inv", label: "Inventory", detail: "By station", href: `${base}/inventory`, group: "Navigation", Icon: Boxes },
+    { id: "nav-inv", label: "Inventory list", detail: "By station", href: `${base}/inventory`, group: "Navigation", Icon: Boxes },
     { id: "nav-reord", label: "Reorder list", detail: "Items below par", href: `${base}/reorder`, group: "Navigation", Icon: Bell },
     { id: "nav-recipes", label: "Recipes", detail: "Menu → BOM mapping", href: `${base}/recipes`, group: "Navigation", Icon: ChefHat },
     { id: "nav-menu", label: "Menu", detail: "Published menu by section", href: `${base}/menu`, group: "Navigation", Icon: BookOpen },

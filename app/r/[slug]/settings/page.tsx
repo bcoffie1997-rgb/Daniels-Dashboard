@@ -1,6 +1,5 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { SiteHeader } from "@/components/site-header";
 import { getRestaurant } from "@/lib/restaurants";
 import { ChevronRight, Settings, AlertTriangle } from "lucide-react";
 
@@ -9,10 +8,7 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
   if (!restaurant) notFound();
 
   return (
-    <div className="min-h-screen bg-background">
-      <SiteHeader current={restaurant} />
-      <div className="h-1 w-full" style={{ backgroundColor: restaurant.accentHex }} />
-      <main className="mx-auto max-w-[900px] px-4 md:px-8 py-8 md:py-10">
+    <main className="mx-auto max-w-[900px] px-4 md:px-8 py-8 md:py-10">
         <nav className="text-sm text-muted-foreground flex items-center gap-2 mb-4">
           <Link href={`/r/${restaurant.slug}`} className="hover:text-accent">
             {restaurant.shortName}
@@ -110,7 +106,6 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
           ]}
         />
       </main>
-    </div>
   );
 }
 

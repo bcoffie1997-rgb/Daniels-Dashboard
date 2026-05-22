@@ -1,6 +1,5 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { SiteHeader } from "@/components/site-header";
 import { getRestaurant } from "@/lib/restaurants";
 import { sessionById, relativeTime } from "@/lib/seed/sessions";
 import { Badge } from "@/components/ui/badge";
@@ -37,10 +36,7 @@ export default function SessionDetailPage({
   const StatusIcon = statusMeta.Icon;
 
   return (
-    <div className="min-h-screen bg-background">
-      <SiteHeader current={restaurant} />
-      <div className="h-1 w-full" style={{ backgroundColor: restaurant.accentHex }} />
-      <main className="mx-auto max-w-[1100px] px-4 md:px-8 py-8 md:py-10">
+    <main className="mx-auto max-w-[1100px] px-4 md:px-8 py-8 md:py-10">
         <Link
           href={`/r/${restaurant.slug}/sessions`}
           className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-4"
@@ -217,7 +213,6 @@ export default function SessionDetailPage({
           </div>
         )}
       </main>
-    </div>
   );
 }
 

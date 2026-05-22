@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { SiteHeader } from "@/components/site-header";
 import { changelogFor } from "@/lib/changelog";
 import { ChangelogList } from "@/components/changelog-list";
 import { ShieldCheck, ChevronRight, Filter } from "lucide-react";
@@ -12,9 +11,7 @@ export default function GroupChangelogPage() {
   entries.forEach((e) => actorRoles.set(e.actor.role, (actorRoles.get(e.actor.role) ?? 0) + 1));
 
   return (
-    <div className="min-h-screen bg-background">
-      <SiteHeader />
-      <main className="mx-auto max-w-[1400px] px-4 md:px-8 py-8 md:py-10">
+    <main className="mx-auto max-w-[1400px] px-4 md:px-8 py-8 md:py-10">
         <nav className="text-sm text-muted-foreground flex items-center gap-2 mb-4">
           <span className="text-foreground">Admin</span>
           <ChevronRight className="h-3.5 w-3.5" />
@@ -70,7 +67,6 @@ export default function GroupChangelogPage() {
           </div>
         </div>
       </main>
-    </div>
   );
 }
 

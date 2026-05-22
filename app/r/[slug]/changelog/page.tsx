@@ -1,6 +1,5 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { SiteHeader } from "@/components/site-header";
 import { getRestaurant, type RestaurantSlug } from "@/lib/restaurants";
 import { changelogFor } from "@/lib/changelog";
 import { ChangelogList } from "@/components/changelog-list";
@@ -12,10 +11,7 @@ export default function ChangelogPage({ params }: { params: { slug: string } }) 
   const entries = changelogFor(restaurant.slug as RestaurantSlug);
 
   return (
-    <div className="min-h-screen bg-background">
-      <SiteHeader current={restaurant} />
-      <div className="h-1 w-full" style={{ backgroundColor: restaurant.accentHex }} />
-      <main className="mx-auto max-w-[1400px] px-4 md:px-8 py-8 md:py-10">
+    <main className="mx-auto max-w-[1400px] px-4 md:px-8 py-8 md:py-10">
         <nav className="text-sm text-muted-foreground flex items-center gap-2 mb-4">
           <Link href={`/r/${restaurant.slug}`} className="hover:text-accent">
             {restaurant.shortName}
@@ -59,6 +55,5 @@ export default function ChangelogPage({ params }: { params: { slug: string } }) 
           </div>
         </div>
       </main>
-    </div>
   );
 }

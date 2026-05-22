@@ -1,6 +1,5 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { SiteHeader } from "@/components/site-header";
 import { getRestaurant } from "@/lib/restaurants";
 import { sessionById } from "@/lib/seed/sessions";
 import { ApprovalActions } from "./approval-actions";
@@ -22,10 +21,7 @@ export default function ApprovalDetailPage({
   );
 
   return (
-    <div className="min-h-screen bg-background">
-      <SiteHeader current={restaurant} />
-      <div className="h-1 w-full" style={{ backgroundColor: restaurant.accentHex }} />
-      <main className="mx-auto max-w-[1100px] px-4 md:px-8 py-8 md:py-10 pb-32">
+    <main className="mx-auto max-w-[1100px] px-4 md:px-8 py-8 md:py-10 pb-32">
         <Link
           href={`/r/${restaurant.slug}/approvals`}
           className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-4"
@@ -121,6 +117,5 @@ export default function ApprovalDetailPage({
           stationName={session.stationName}
         />
       </main>
-    </div>
   );
 }

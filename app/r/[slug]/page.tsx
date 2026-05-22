@@ -1,6 +1,5 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { SiteHeader } from "@/components/site-header";
 import { KpiStat } from "@/components/kpi-stat";
 import { getRestaurant } from "@/lib/restaurants";
 import { getKpiFor } from "@/lib/mock-data";
@@ -19,13 +18,7 @@ export default function RestaurantDashboard({ params }: { params: { slug: string
   );
 
   return (
-    <div className="min-h-screen bg-background">
-      <SiteHeader current={restaurant} />
-      <div
-        className="h-1 w-full"
-        style={{ backgroundColor: restaurant.accentHex }}
-      />
-      <main className="mx-auto max-w-[1400px] px-4 md:px-8 py-8 md:py-10">
+    <main className="mx-auto max-w-[1400px] px-4 md:px-8 py-8 md:py-10">
         <div className="flex items-start justify-between flex-wrap gap-4 mb-8">
           <div>
             <div className="micro" style={{ color: restaurant.accentHex }}>
@@ -253,7 +246,6 @@ export default function RestaurantDashboard({ params }: { params: { slug: string
           </div>
         </section>
       </main>
-    </div>
   );
 }
 
